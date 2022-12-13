@@ -23,9 +23,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-               .antMatchers("/customers/DisplayAllCustomers","/customers/FindByCustomerID/{id}","/customers/FilterCustomersByIDPoof/{id_type}","/customers/AddCustomers","/customers/DeleteCustomer/{id}").hasRole("ADMIN")
-                .antMatchers("/customers/UpdateCustomer","/customers/Ministatement/{id}","/customers/CheckBalance/{id}","/customers/CheckTransactionMode/{mode}").hasAnyRole("ADMIN", "USER")
-                .antMatchers("/customers/AllTransactionsHistory","/customers/LatestTransactions","/customers/Banking").permitAll()
+               .antMatchers("/customers/DisplayAllCustomers","/customers/FindByCustomerID/{id}","/customers/FilterCustomersByIDPoof/{id_type}").hasRole("ADMIN")
+                .antMatchers("/customers/Ministatement/{id}","/customers/CheckBalance/{id}","/customers/CheckTransactionMode/{mode}").hasAnyRole("ADMIN", "USER")
+                .antMatchers("/customers/AllTransactionsHistory","/customers/LatestTransactions","/customers/Banking","/customers/AddCustomers","/customers/UpdateCustomer","/customers/DeleteCustomer/{id}").permitAll()
                 .and().formLogin();
     }
 

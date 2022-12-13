@@ -100,32 +100,7 @@ public class CustomerServiceImpl implements CustomerService{
 		return TransactionsRepository.getCheckBalance(customer_id);
 	}
 
-//	@Override
-//	public Customers UpdateCustomer(Customers user){
-//		Customers UpdateCustomers= null;
-//		try {
-//			UpdateCustomers = userRepository.findById(user).orElse(null);
-//			if(UpdateCustomers == null) {
-//				throw new Exception("User is not available in database");
-//			}else {
-//				UpdateCustomers.setCustomer_Id(UpdateCustomers.getCustomer_Id());
-//				UpdateCustomers.setName(UpdateCustomers.getName());
-//				UpdateCustomers.setAccount(UpdateCustomers.getAccount());
-//				UpdateCustomers.setId_type(UpdateCustomers.getId_type());
-//				UpdateCustomers.setId_num(UpdateCustomers.getId_num());
-//				UpdateCustomers.setDob(UpdateCustomers.getDob());
-//				UpdateCustomers.setPhone(UpdateCustomers.getPhone());
-//				UpdateCustomers.setEmail(UpdateCustomers.getEmail());
-//				UpdateCustomers.setAddress(UpdateCustomers.getAddress());
-//				UpdateCustomers.setSex(UpdateCustomers.getSex());
-//				
-//				 userRepository.save(user);
-//			}
-//		}catch(Exception ex) {
-//		
-//	}
-//		return null;
-//	}
+
 
 	@Override
 	public List<Transactions> getTransactionByType(String transaction_mode) {
