@@ -8,18 +8,18 @@ import com.example.pi.entity.Transactions;
 
 public interface CustomerService {
 	
-	public List<Customers> getAllCustomers(); //get all customers
-	public Customers getCustomerById(int userId);//find individual customers
-	public Customers addCustomer(Customers user);//add new customer
-	public Customers UpdateCustomer(Customers user);//Update Exsisting Customers
-	public Customers deleteCustomer(int userId) throws Exception;//delete a customer
+	public List<Customers> getAllCustomers(); //1.get all customers
+	public Customers getCustomerById(int userId);//2.find individual customers
+	public Customers addCustomer(Customers user);//3.add new customer
+	public Customers UpdateCustomer(Customers user);//4.Update Exsisting Customers
+	public Customers deleteCustomer(int userId) throws Exception;//5.delete a customer
 	
-	public List<Customers> getCustomerByIdentityType(String id_type);//find customers by id proof submitted
+	public List<Customers> getCustomerByIdentityType(String id_type);//6.find customers by id proof submitted
 	
-	public List<UserDepartmentResponse> getUserDepartMent();// all transactions history
-	public List<UserDepartmentResponse> getLatestTransactions();//show latest transactions by date
-	public List<Transactions> getCustomerByID(int customer_id);//check individual ministatement
-	public List<Transactions> getCheckBalance(int customer_id);//check balance
-	public List<Transactions> getTransactionByType(String transaction_mode);//filter by transaction type
-	public Transactions addTransactions(Transactions user);//transfer or deposit
+	public List<UserDepartmentResponse> getUserDepartMent();// 7.all transactions history
+	public List<UserDepartmentResponse> getLatestTransactions();//8.show latest transactions by date
+	public List<Transactions> getCustomerByID(int customer_id);//9.check individual ministatement
+	public List<Transactions> getCheckBalance(int customer_id);//10.check balance
+	public List<Transactions> getTransactionByType(String transaction_mode);//11.filter by transaction type
+	public Transactions addTransactions(Transactions user);//12.transfer or deposit
 }

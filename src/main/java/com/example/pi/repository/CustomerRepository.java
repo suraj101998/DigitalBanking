@@ -18,9 +18,5 @@ public interface CustomerRepository extends CrudRepository<Customers, Integer> {
 	@Query(value="SELECT * from customers ud where ud.IDENTITY_TYPE = ?1",nativeQuery =true)
 	public List<Customers> getCustomerByIdentityType(@Param("id_type")String id_type);
 
-
-
-
-	
 	
 }
