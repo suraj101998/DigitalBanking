@@ -1,12 +1,13 @@
 package com.example.pi.dao;
 
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
+import com.example.pi.response.PaginationResponse;
 import com.example.pi.response.UserDepartmentResponse;
+
 public interface UserDao {
 
-	public List<UserDepartmentResponse> getUserDepartment();
-	public List<UserDepartmentResponse> getLatestTransactions();
+	PaginationResponse<UserDepartmentResponse> getUserDepartment(Pageable pageable);
+	PaginationResponse<UserDepartmentResponse> getLatestTransactions(Pageable pageable);
 
 }

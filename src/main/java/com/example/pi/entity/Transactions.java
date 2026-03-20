@@ -1,12 +1,14 @@
 package com.example.pi.entity;
 
+import java.math.BigDecimal;
 import java.sql.Date;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -46,10 +48,10 @@ public class Transactions {
 	private int customer_id;
 	
 	@Column(name = "initial_deposit")
-	private int initial_deposit;
+	private long initial_deposit;
 	
 	@Column(name = "available_balance")
-	private int available_balance;
+	private long available_balance;
 	
 	@Column(name = "transaction_mode")
 	private String transaction_mode;
@@ -98,16 +100,16 @@ public class Transactions {
 	public void setCustomer_id(int customer_id) {
 		this.customer_id = customer_id;
 	}
-	public int getInitial_deposit() {
+	public long getInitial_deposit() {
 		return initial_deposit;
 	}
-	public void setInitial_deposit(int initial_deposit) {
+	public void setInitial_deposit(long initial_deposit) {
 		this.initial_deposit = initial_deposit;
 	}
-	public int getAvailable_balance() {
+	public long getAvailable_balance() {
 		return available_balance;
 	}
-	public void setAvailable_balance(int available_balance) {
+	public void setAvailable_balance(long available_balance) {
 		this.available_balance = available_balance;
 	}
 	

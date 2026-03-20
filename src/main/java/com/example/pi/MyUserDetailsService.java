@@ -8,8 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.pi.models.MyUserDetails;
 import com.example.pi.models.User;
-
-import java.util.Optional;
+import com.example.pi.repository.UserRepository;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
@@ -19,10 +18,12 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findByUserName(userName);
+        User user = userRepository.findByUserName(userName);
 
-        user.orElseThrow(() -> new UsernameNotFoundException("Not found: " + userName));
+        if (user == null) {
+            throw new UsernameNotFoundException("User Not found: " + userName);
+        }
 
-        return user.map(MyUserDetails::new).get();
+        return new MyUserDetails(user);
     }
 }
