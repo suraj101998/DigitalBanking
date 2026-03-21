@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import com.example.pi.dao.UserDao;
 import com.example.pi.dao.support.NameParametersJdbcDaoSupportClass;
-import com.example.pi.response.PaginationResponse;
-import com.example.pi.response.UserDepartmentResponse;
+import com.example.pi.dto.response.PaginationResponse;
+import com.example.pi.dto.response.UserDepartmentResponse;
 import com.example.pi.util.PaginationUtil;
 
 @Repository

@@ -3,7 +3,7 @@ package com.example.pi.util;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.example.pi.response.PaginationResponse;
+import com.example.pi.dto.response.PaginationResponse;
 
 public class PaginationUtil {
 

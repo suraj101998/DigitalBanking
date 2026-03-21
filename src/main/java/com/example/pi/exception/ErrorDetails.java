@@ -2,11 +2,6 @@ package com.example.pi.exception;
 
 import java.util.Date;
 
-import lombok.Data;
-import lombok.Getter;
-
-//@Data
-//@Getter
 public class ErrorDetails {
 
 	@Override
@@ -16,7 +11,6 @@ public class ErrorDetails {
 
 	public ErrorDetails() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public ErrorDetails(Date timestamp, String message, String details) {

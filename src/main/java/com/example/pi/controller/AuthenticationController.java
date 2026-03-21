@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.pi.models.User;
 import com.example.pi.repository.UserRepository;
 import com.example.pi.repository.CustomerRepository;
-import com.example.pi.request.LoginRequest;
-import com.example.pi.request.UserRegisterRequest;
-import com.example.pi.response.LoginResponse;
+import com.example.pi.dto.request.LoginRequest;
+import com.example.pi.dto.request.UserRegisterRequest;
+import com.example.pi.dto.response.LoginResponse;
 import com.example.pi.security.JwtUtils;
 import com.example.pi.entity.Customers;
+import com.example.pi.entity.User;
 
 @RestController
 @RequestMapping("/auth")

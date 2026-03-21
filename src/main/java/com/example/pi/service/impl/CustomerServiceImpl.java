@@ -6,8 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.pi.response.PaginationResponse;
-import com.example.pi.response.UserDepartmentResponse;
+import com.example.pi.dto.response.PaginationResponse;
+import com.example.pi.dto.response.UserDepartmentResponse;
 import com.example.pi.util.PaginationUtil;
 import com.example.pi.dao.UserDao;
 import com.example.pi.entity.Customers;

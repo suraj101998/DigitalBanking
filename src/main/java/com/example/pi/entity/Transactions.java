@@ -1,13 +1,11 @@
 package com.example.pi.entity;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -42,7 +40,7 @@ public class Transactions {
 	private Date transaction_date;
 	
 	@Column(name = "transaction_amount")
-	private int transaction_amount;
+	private long transaction_amount;
 	
 	@Column(name = "customer_id")
 	private int customer_id;
@@ -88,11 +86,11 @@ public class Transactions {
 	public void setTransaction_to(String transaction_to) {
 		this.transaction_to = transaction_to;
 	}
-	public int getTransaction_amount() {
+	public long getTransaction_amount() {
 		return transaction_amount;
 	}
-	public void setTransaction_amount(int transaction_amount) {
-		this.transaction_amount = transaction_amount;
+	public void setTransaction_amount(long transactionAmount) {
+		this.transaction_amount = transactionAmount;
 	}
 	public int getCustomer_id() {
 		return customer_id;
@@ -120,19 +118,6 @@ public class Transactions {
 		this.transaction_mode = transaction_mode;
 	}
 	
-//	public Transactions(String transaction_type, String transaction_id, String transaction_to, Date transaction_date,
-//			int transaction_amount, int customer_id, int intial_deposit, int available_balance) {
-//		super();
-//		this.transaction_type = transaction_type;
-//		this.transaction_id = transaction_id;
-//		this.transaction_to = transaction_to;
-//		this.transaction_date = transaction_date;
-//		this.transaction_amount = transaction_amount;
-//		this.customer_id = customer_id;
-//		this.intial_deposit = intial_deposit;
-//		this.available_balance = available_balance;
-//	}
-	
 	
 	public Transactions(int serial_number, String transaction_type, String transaction_id, String transaction_to,
 			Date transaction_date, int transaction_amount, int customer_id, int initial_deposit, int available_balance,String transaction_mode) {
@@ -152,7 +137,6 @@ public class Transactions {
 	
 	public Transactions() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 	
 	
@@ -163,16 +147,6 @@ public class Transactions {
 				+ transaction_date + ", transaction_amount=" + transaction_amount + ", customer_id=" + customer_id
 				+ ", initial_deposit=" + initial_deposit + ", available_balance=" + available_balance + ", transaction_mode=" + transaction_type + "]";
 	}
-	
-	
-	
-//	@Override
-//	public String toString() {
-//		return "Transactions [transaction_type=" + transaction_type + ", transaction_id=" + transaction_id
-//				+ ", transaction_to=" + transaction_to + ", transaction_date=" + transaction_date
-//				+ ", transaction_amount=" + transaction_amount + ", customer_id=" + customer_id + ", intial_deposit="
-//				+ intial_deposit + ", available_balance=" + available_balance + "]";
-//	}
 
 	
 }

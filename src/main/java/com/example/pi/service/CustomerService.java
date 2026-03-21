@@ -2,8 +2,8 @@ package com.example.pi.service;
 
 import org.springframework.data.domain.Pageable;
 
-import com.example.pi.response.PaginationResponse;
-import com.example.pi.response.UserDepartmentResponse;
+import com.example.pi.dto.response.PaginationResponse;
+import com.example.pi.dto.response.UserDepartmentResponse;
 import com.example.pi.entity.Customers;
 import com.example.pi.entity.Transactions;
 

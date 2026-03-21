@@ -24,19 +24,6 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
 	}
 	
-	//Handling API Exception
-//		@ExceptionHandler(APIExceiption.class)
-//		public ResponseEntity<?> apiExceptionHandling(
-//				APIExceiption exception,
-//				WebRequest request
-//				) {
-//			
-//			ErrorDetails errorDetails = 
-//					new ErrorDetails(new Date(), exception.getMessage(), request.getDescription(false));
-//			
-//			return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
-//		}
-	
 	// handling global exceptions
 	public ResponseEntity<?>  globalExceptionHandling(Exception exception, WebRequest request){
 		ErrorDetails errorDetails = 
@@ -46,7 +33,5 @@ public class GlobalExceptionHandler {
 						request.getDescription(false)
 					);
 		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
-	}
-	
-	
+	}	
 }

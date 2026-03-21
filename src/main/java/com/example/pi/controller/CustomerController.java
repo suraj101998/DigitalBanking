@@ -1,6 +1,7 @@
 package com.example.pi.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,14 +19,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.pi.service.CustomerService;
+import com.example.pi.service.TransactionService;
 import com.example.pi.security.JwtUtils;
-import com.example.pi.response.PaginationResponse;
-import com.example.pi.response.UserDepartmentResponse;
+import com.example.pi.dto.response.BalanceResponse;
+import com.example.pi.dto.response.PaginationResponse;
+import com.example.pi.dto.response.TransactionResponse;
+import com.example.pi.dto.response.UserDepartmentResponse;
 import com.example.pi.entity.Customers;
 import com.example.pi.entity.Transactions;
-import com.example.pi.request.PaymentRequest;
-
-import java.sql.Date;
+import com.example.pi.dto.request.PaymentRequest;
 
 @RestController
 @RequestMapping("/customers")
@@ -35,6 +37,9 @@ public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private TransactionService transactionService;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -137,6 +142,7 @@ public class CustomerController {
 
     @GetMapping("/Ministatement/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @Cacheable(value = "Transactions", key = "#customer_id + '-' + #page")
     public ResponseEntity<PaginationResponse<Transactions>> getCustomerByID(
             @PathVariable("id") int customer_id,
             @RequestParam(defaultValue = "0") int page,
@@ -151,7 +157,7 @@ public class CustomerController {
             }
 
             Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
-            PaginationResponse<Transactions> response = customerService.getCustomerByID(customer_id, pageable);
+            PaginationResponse<Transactions> response = transactionService.getCustomerTransactions(customer_id, pageable);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -160,7 +166,8 @@ public class CustomerController {
 
     @GetMapping("/CheckBalance/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<Transactions> getCheckBalance(
+    @Cacheable(value = "Balance", key = "#customer_id")
+    public ResponseEntity<BalanceResponse> getCheckBalance(
             @PathVariable("id") int customer_id,
             Authentication authentication) {
         try {
@@ -172,8 +179,8 @@ public class CustomerController {
                 }
             }
 
-            Transactions transaction = customerService.getCheckBalance(customer_id);
-            return new ResponseEntity<>(transaction, HttpStatus.OK);
+            BalanceResponse balance = transactionService.getBalance(customer_id);
+            return new ResponseEntity<>(balance, HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -181,12 +188,13 @@ public class CustomerController {
 
     @GetMapping("/CheckTransactionMode/{mode}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @Cacheable(value = "TransactionsByMode", key = "#transaction_mode + '-' + #page")
     public ResponseEntity<PaginationResponse<Transactions>> getTransactionByType(
             @PathVariable("mode") String transaction_mode,
             @RequestParam(defaultValue = "0") int page) {
         try {
             Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
-            PaginationResponse<Transactions> response = customerService.getTransactionByType(transaction_mode, pageable);
+            PaginationResponse<Transactions> response = transactionService.getTransactionsByType(transaction_mode, pageable);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -195,12 +203,19 @@ public class CustomerController {
 
     @PostMapping("/Banking")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Transactions> addTransactions(@RequestBody Transactions user) {
+    public ResponseEntity<?> createTransaction(@RequestBody PaymentRequest paymentRequest,
+                                               @RequestParam int customerId) {
         try {
-            Transactions transaction = customerService.addTransactions(user);
-            return new ResponseEntity<>(transaction, HttpStatus.CREATED);
+            TransactionResponse response = transactionService.createTransaction(
+                customerId,
+                paymentRequest.getTransactionType(),
+                paymentRequest.getTransactionTo(),
+                paymentRequest.getTransactionAmount(),
+                paymentRequest.getTransactionMode()
+            );
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception ex) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -219,44 +234,16 @@ public class CustomerController {
                 }
             }
 
-            Customers customer = customerService.getCustomerById(customerId);
-            if (customer == null) {
-                return new ResponseEntity<>("Customer not found", HttpStatus.NOT_FOUND);
-            }
-
-            if (paymentRequest.getTransactionAmount() <= 0) {
-                return new ResponseEntity<>("Invalid amount", HttpStatus.BAD_REQUEST);
-            }
-
-            Transactions transaction = new Transactions();
-            transaction.setCustomer_id(customerId);
-            transaction.setTransaction_type(paymentRequest.getTransactionType());
-            transaction.setTransaction_to(paymentRequest.getTransactionTo());
-            transaction.setTransaction_amount(paymentRequest.getTransactionAmount());
-            transaction.setTransaction_mode(paymentRequest.getTransactionMode());
-            transaction.setTransaction_date(new Date(System.currentTimeMillis()));
-
-            Transactions lastTransaction = customerService.getCheckBalance(customerId);
-            long currentBalance = lastTransaction != null ? lastTransaction.getAvailable_balance() : customer.getAccount();
-
-            if ("debit".equalsIgnoreCase(paymentRequest.getTransactionType())) {
-                if (currentBalance < paymentRequest.getTransactionAmount()) {
-                    return new ResponseEntity<>("Insufficient balance", HttpStatus.BAD_REQUEST);
-                }
-                long newBalance = currentBalance - paymentRequest.getTransactionAmount();
-                transaction.setInitial_deposit(currentBalance);
-                transaction.setAvailable_balance(newBalance);
-            } else if ("credit".equalsIgnoreCase(paymentRequest.getTransactionType())) {
-                long newBalance = currentBalance + paymentRequest.getTransactionAmount();
-                transaction.setInitial_deposit(currentBalance);
-                transaction.setAvailable_balance(newBalance);
-            }
-
-            Transactions savedTransaction = customerService.addTransactions(transaction);
-            return new ResponseEntity<>(savedTransaction, HttpStatus.CREATED);
-
+            TransactionResponse response = transactionService.createTransaction(
+                customerId,
+                paymentRequest.getTransactionType(),
+                paymentRequest.getTransactionTo(),
+                paymentRequest.getTransactionAmount(),
+                paymentRequest.getTransactionMode()
+            );
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception ex) {
-            return new ResponseEntity<>("Payment failed: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
