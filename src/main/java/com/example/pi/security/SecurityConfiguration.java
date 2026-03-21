@@ -1,6 +1,8 @@
 package com.example.pi.security;
 
+import com.example.pi.filter.RequestResponseLoggingFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -66,5 +68,19 @@ public class SecurityConfiguration {
             .passwordEncoder(passwordEncoder())
             .and()
             .build();
+    }
+
+    /**
+     * Register RequestResponseLoggingFilter as a FilterRegistrationBean.
+     * This prevents Spring AOP from trying to proxy the Servlet Filter.
+     * Order = -100 ensures it runs before other filters.
+     */
+    @Bean
+    public FilterRegistrationBean<RequestResponseLoggingFilter> requestResponseLoggingFilterRegistration() {
+        FilterRegistrationBean<RequestResponseLoggingFilter> registration =
+            new FilterRegistrationBean<>(new RequestResponseLoggingFilter());
+        registration.addUrlPatterns("/*");
+        registration.setOrder(-100); // Run this filter first
+        return registration;
     }
 }

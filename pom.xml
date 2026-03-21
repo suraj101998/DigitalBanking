@@ -90,6 +90,15 @@
 			<version>0.12.3</version>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Spring AOP and AspectJ for logging aspects -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

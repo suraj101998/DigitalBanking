@@ -16,10 +16,11 @@ A modern, secure REST API for digital banking operations built with Spring Boot 
 8. [API Endpoints](#api-endpoints)
 9. [Authentication & Security](#authentication--security)
 10. [Working with the API](#working-with-the-api)
-11. [Architecture Overview](#architecture-overview)
-12. [Development Guidelines](#development-guidelines)
-13. [Troubleshooting](#troubleshooting)
-14. [Future Enhancements](#future-enhancements)
+11. [Logging & Monitoring](#logging--monitoring)
+12. [Architecture Overview](#architecture-overview)
+13. [Development Guidelines](#development-guidelines)
+14. [Troubleshooting](#troubleshooting)
+15. [Future Enhancements](#future-enhancements)
 
 ---
 
@@ -46,6 +47,9 @@ The Digital Banking Application is a production-ready REST API designed for mode
 - ✅ RESTful API design
 - ✅ Spring Security integration
 - ✅ MySQL database with optimized indices
+- ✅ **Production-Grade Logging** - Comprehensive request/response logging with daily rotation
+- ✅ **Method-Level Performance Tracking** - Aspect-based logging for all operations
+- ✅ **Async Non-Blocking Logs** - High-performance logging without impacting request-response time
 
 ---
 
@@ -58,6 +62,8 @@ The Digital Banking Application is a production-ready REST API designed for mode
 | **Database** | MySQL | 8.0.28 |
 | **ORM** | JPA/Hibernate | 6.x (bundled with Spring Boot) |
 | **Security** | Spring Security + JWT | JJWT 0.12.3 |
+| **Logging** | SLF4J + Logback | Latest |
+| **AOP** | Spring AOP + AspectJ | Latest |
 | **Build Tool** | Maven | 3.x |
 | **Server** | Embedded Tomcat | 10.x |
 | **JSON Processing** | Jackson | 2.x (bundled) |
@@ -75,6 +81,11 @@ See `pom.xml` for complete dependency list:
 
 <!-- JWT -->
 - jjwt-api, jjwt-impl, jjwt-jackson (v0.12.3)
+
+<!-- Logging & AOP -->
+- spring-boot-starter-aop
+- aspectjweaver
+- logback (bundled with Spring Boot)
 
 <!-- Database -->
 - mysql-connector-j
@@ -135,7 +146,14 @@ src/main/java/com/example/pi/
 │   └── GlobalExceptionHandler.java       # Centralized exception handling
 │
 ├── util/
-│   └── PaginationUtil.java              # Pagination helper methods
+│   ├── PaginationUtil.java              # Pagination helper methods
+│   └── LoggingUtil.java                 # Logging utility with business operation methods
+│
+├── filter/
+│   └── RequestResponseLoggingFilter.java # HTTP request/response logging
+│
+├── aspect/
+│   └── LoggingAspect.java               # AOP method-level logging
 │
 ├── dao/ (Legacy - deprecated)
 │   ├── UserDao.java
@@ -146,6 +164,7 @@ src/main/java/com/example/pi/
 
 src/main/resources/
 ├── application.properties                # Application configuration
+├── logback-spring.xml                   # Logback logging configuration
 ├── banner.txt                           # Application startup banner
 └── db/migration/                        # Database migration scripts (if using Flyway)
 ```
@@ -205,7 +224,7 @@ Before setting up the project, ensure you have the following installed:
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/suraj101998/DigitalBanking.git
 
 # Navigate to project directory
 cd DigitalBanking
@@ -792,6 +811,213 @@ Use the provided `DigitalBanking.postman_collection.json` file.
 
 ---
 
+## Logging & Monitoring
+
+### Overview
+
+The application includes **production-grade logging** with comprehensive request/response tracking, method-level performance monitoring, and automatic log rotation. All operations are logged to dedicated log files for easy debugging and auditing.
+
+### Log Files
+
+All logs are created in `./logs/` directory with automatic daily rotation:
+
+| Log File | Purpose | Format |
+|----------|---------|--------|
+| **trace_log.log** | Complete application trace with all operations | Daily rotation: `trace_log.YYYY-MM-DD.log` |
+| **error.log** | Errors and exceptions only | Daily + size-based rotation |
+| **application.log** | Business logic and service operations | Daily rotation |
+| **database.log** | SQL queries and Hibernate operations | Daily rotation |
+| **request_response.log** | HTTP request/response details | Daily rotation |
+| **access_log.YYYY-MM-DD.log** | Tomcat raw HTTP access log | Daily rotation |
+
+### What Gets Logged
+
+#### 1. All HTTP Requests
+```
+================== INCOMING REQUEST ==================
+Timestamp: 1711014922123
+Request Method: POST
+Request URL: http://localhost:8080/customers/Banking?customerId=1
+Request Headers:
+  Content-Type: application/json
+  Authorization: ***MASKED***
+Request Body: {"transaction_type":"debit",...}
+```
+
+#### 2. All HTTP Responses
+```
+================== OUTGOING RESPONSE ==================
+HTTP Status Code: 201
+Execution Time: 889 ms
+Response Headers:
+  Content-Type: application/json
+Response Body: {"serialNumber":15,"customerId":1,...}
+```
+
+#### 3. Service Operations
+```
+🔄 SERVICE OPERATION: TransactionServiceImpl.createTransaction started
+>>> ENTERING METHOD: TransactionServiceImpl.createTransaction
+<<< EXITING METHOD: TransactionServiceImpl.createTransaction | Execution Time: 125 ms
+✅ SERVICE OPERATION: TransactionServiceImpl.createTransaction completed in 125 ms
+```
+
+#### 4. Database Queries
+```
+SELECT * FROM customers WHERE customer_id = ?
+binding parameter [1] as [INTEGER] - [1]
+```
+
+#### 5. Business Events
+```
+🔄 TRANSACTION STARTED | Customer ID: 1 | Type: debit | Amount: 500
+✅ TRANSACTION SUCCESS | Customer ID: 1 | Transaction ID: TXN123 | Time: 125 ms
+❌ TRANSACTION FAILED | Customer ID: 1 | Reason: Insufficient balance
+```
+
+### Viewing Logs
+
+#### Real-Time Monitoring
+```bash
+# Watch all application logs
+tail -f ./logs/trace_log.log
+
+# Watch only errors
+tail -f ./logs/error.log
+
+# Watch with keyword filtering
+tail -f ./logs/trace_log.log | grep "TRANSACTION"
+```
+
+#### Search and Analyze
+```bash
+# Find all errors with timestamps
+grep "ERROR" ./logs/error.log
+
+# Find specific customer operations
+grep "Customer ID: 1" ./logs/trace_log.log
+
+# Find requests to specific endpoint
+grep "/customers/CheckBalance" ./logs/request_response.log
+
+# Count error occurrences
+grep -c "ERROR" ./logs/error.log
+
+# Show last 100 lines
+tail -100 ./logs/trace_log.log
+```
+
+### Logging Configuration
+
+#### Log Levels
+Configured in `application.properties`:
+
+```properties
+logging.level.root=INFO                              # Root level
+logging.level.com.example.pi=DEBUG                  # Application code
+logging.level.com.example.pi.controller=DEBUG       # Controllers
+logging.level.com.example.pi.service=DEBUG          # Services
+logging.level.com.example.pi.repository=DEBUG       # Repositories
+logging.level.org.hibernate.SQL=DEBUG               # SQL queries
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE  # Query parameters
+```
+
+#### File Configuration
+```properties
+logging.file.name=./logs/trace_log.log
+logging.file.max-size=10MB                          # Rotate at 10MB
+logging.file.max-history=30                         # Keep 30 days
+```
+
+#### Change Log Output
+```properties
+# More verbose
+logging.level.com.example.pi=DEBUG
+
+# Less verbose
+logging.level.com.example.pi=INFO
+
+# Quiet
+logging.level.com.example.pi=WARN
+```
+
+### Using LoggingUtil in Code
+
+For consistent business operation logging, use the LoggingUtil class:
+
+```java
+import com.example.pi.util.LoggingUtil;
+
+public class TransactionService {
+    private LoggingUtil logger = new LoggingUtil(TransactionService.class);
+
+    public void createTransaction(int customerId, String type, long amount) {
+        // Log operation start
+        logger.logTransactionStart(customerId, type, amount);
+
+        // Check balance
+        long balance = getBalance(customerId);
+        logger.logBalanceCheck(customerId, balance);
+
+        // Validate
+        if (balance < amount) {
+            logger.logInsufficientBalance(customerId, amount, balance);
+            throw new Exception("Insufficient balance");
+        }
+
+        // Execute and log success
+        String txnId = processTransaction(...);
+        logger.logTransactionSuccess(customerId, txnId, amount, executionTime);
+    }
+}
+```
+
+### Performance Monitoring
+
+Logs include execution times for all operations:
+
+```bash
+# Find slow operations (execution time > 1000ms)
+grep -E "Time: [0-9]{4,}" ./logs/trace_log.log
+
+# Average response time for each endpoint
+grep "Execution Time:" ./logs/request_response.log | \
+  awk -F' ' '{sum+=$(NF-2); count++} END {print "Avg: " sum/count " ms"}'
+```
+
+### Monitoring & Alerting
+
+#### Key Metrics to Track
+- **Error Rate**: Monitor `./logs/error.log`
+- **Response Time**: Check execution times in `./logs/request_response.log`
+- **Database Performance**: Review query times in `./logs/database.log`
+- **Transaction Success Rate**: Count success/failure in `./logs/application.log`
+
+#### Alert Triggers (Set Up Monitoring)
+- Error count > 5 in 1 minute
+- Average response time > 2 seconds
+- Database query time > 1 second
+- Insufficient balance errors > threshold
+
+### Security Features
+
+**Automatic Data Masking**:
+- ✅ Authorization headers → `***MASKED***`
+- ✅ Password fields → `***MASKED***`
+- ✅ Token values → `***MASKED***`
+- ✅ API keys → `***MASKED***`
+- ✅ Cookies → `***MASKED***`
+
+This prevents sensitive data from appearing in logs while maintaining audit trails.
+
+### Documentation Files
+
+For comprehensive logging documentation, see:
+- **LOGGING_GUIDE.md** - Complete logging guide with examples
+- **LOGGING_SETUP.md** - Quick setup reference
+
+---
+
 ## Architecture Overview
 
 ### Layered Architecture
@@ -1189,24 +1415,162 @@ lsof -i :8080
 kill -9 <PID>
 ```
 
+#### 11. Logs Not Appearing in Log Files
+
+**Problem**: Log files not created or empty
+
+**Solution:**
+```bash
+# Check if logs directory was created
+ls -la ./logs/
+
+# If not, create it
+mkdir -p ./logs
+
+# Check file permissions
+chmod 755 ./logs
+chmod 644 ./logs/*.log
+
+# Verify logback configuration
+grep "LOG_DIR" src/main/resources/logback-spring.xml
+
+# Verify application.properties
+grep "logging.file.name" src/main/resources/application.properties
+
+# Ensure logback-spring.xml exists
+ls -la src/main/resources/logback-spring.xml
+```
+
+#### 12. AOP Proxy Warnings in Startup
+
+**Problem**: Warnings about "Unable to proxy interface-implementing method"
+
+**Solution**:
+- This is normal and expected due to Spring AOP
+- The RequestResponseLoggingFilter is registered via FilterRegistrationBean
+- To suppress warnings (not recommended in production):
+```properties
+# In application.properties
+spring.aop.proxy-target-class=true
+```
+
+#### 13. Logs Directory Growing Too Large
+
+**Problem**: Disk space consumed by logs
+
+**Solution:**
+```bash
+# Check size
+du -sh ./logs/
+
+# Archive old logs (keeps compressed versions)
+find ./logs -name "*.log" -mtime +7 -exec gzip {} \;
+
+# Delete very old logs (older than 60 days)
+find ./logs -name "*.log" -mtime +60 -delete
+
+# Reduce log level in application.properties
+logging.level.com.example.pi=INFO  # Change from DEBUG
+```
+
+#### 14. Missing Request/Response Logging
+
+**Problem**: HTTP requests not being logged to request_response.log
+
+**Solution:**
+```bash
+# Verify RequestResponseLoggingFilter bean is registered
+# Check SecurityConfiguration.java has FilterRegistrationBean
+
+# Check log level is appropriate
+grep "logging.level" src/main/resources/application.properties
+
+# Verify logback-spring.xml has REQUEST_RESPONSE_FILE appender
+grep "REQUEST_RESPONSE_FILE" src/main/resources/logback-spring.xml
+
+# Enable debug mode to see filter initialization
+mvn spring-boot:run -Dspring-boot.run.arguments="--debug"
+```
+
 ### Logs and Debugging
 
 #### View Application Logs
+
 ```bash
+# Watch all logs in real-time
+tail -f ./logs/trace_log.log
+
+# Watch only errors
+tail -f ./logs/error.log
+
+# Watch database queries
+tail -f ./logs/database.log
+
+# Watch HTTP requests/responses
+tail -f ./logs/request_response.log
+
 # Tomcat access logs
 tail -f ./logs/access_log.2024-03-21.log
 
-# Application debug logs (if enabled)
-tail -f ./logs/application.log
+# Show last 100 lines
+tail -100 ./logs/trace_log.log
+```
+
+#### Search and Filter Logs
+
+```bash
+# Find all errors
+grep "ERROR" ./logs/error.log
+
+# Find specific customer operations
+grep "Customer ID: 1" ./logs/trace_log.log
+
+# Find transaction-related logs
+grep -i "TRANSACTION" ./logs/application.log
+
+# Find slow operations (> 1000ms)
+grep -E "Time: [0-9]{4}" ./logs/trace_log.log
+
+# Count errors by type
+grep "ERROR" ./logs/error.log | awk -F':' '{print $(NF-1)}' | sort | uniq -c
+
+# Find requests to specific endpoint
+grep "/customers/CheckBalance" ./logs/request_response.log
 ```
 
 #### Enable Detailed Logging
+
 ```properties
 # In application.properties
 logging.level.root=INFO
 logging.level.com.example.pi=DEBUG
 logging.level.org.springframework.web=DEBUG
+logging.level.org.springframework.security=DEBUG
 logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+```
+
+#### Log Analysis Commands
+
+```bash
+# Count total errors
+wc -l ./logs/error.log
+
+# Find errors from last hour
+grep "$(date -d '1 hour ago' '+%Y-%m-%d %H')" ./logs/error.log
+
+# Find failed transactions
+grep "TRANSACTION FAILED" ./logs/application.log
+
+# Analyze response times
+grep "Execution Time:" ./logs/request_response.log | \
+  awk -F' ' '{sum+=$(NF-2); count++} END {print "Average: " sum/count " ms"}'
+
+# Find potential performance issues
+grep -E "Execution Time: [5-9][0-9]{3,}" ./logs/trace_log.log  # >5000ms
+
+# View file growth
+ls -lh ./logs/*.log
 ```
 
 ---
@@ -1300,8 +1664,8 @@ This project is proprietary and confidential. Unauthorized copying, modification
 ## Contact & Support
 
 For issues, questions, or support:
-- Email: support@digitalbanking.local
-- Issue Tracker: [GitHub Issues](https://github.com/your-repo/issues)
+- Email: surajchakraborty82@gmail.com
+- Issue Tracker: [GitHub Issues](https://github.com/suraj101998/DigitalBanking.git/issues)
 
 ---
 
