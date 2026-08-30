@@ -1,25 +1,33 @@
 package com.example.pi.dto.response;
 
-import java.sql.Date;
+import java.math.BigDecimal;
+import java.time.Instant;
 
+/**
+ * Transaction response DTO.
+ * Uses BigDecimal for monetary fields (doc item #4) and Instant for the timestamp (doc item #19).
+ */
 public class TransactionResponse {
-    private int serialNumber;
+
+    private Integer serialNumber;
     private String transactionType;
     private String transactionId;
     private String transactionTo;
-    private Date transactionDate;
-    private long transactionAmount;
-    private int customerId;
-    private long initialDeposit;
-    private long availableBalance;
+    private Instant transactionDate;
+    private BigDecimal transactionAmount;
+    private Integer customerId;
+    private BigDecimal initialDeposit;
+    private BigDecimal availableBalance;
     private String transactionMode;
+    private String transactionStatus;
 
     public TransactionResponse() {
     }
 
-    public TransactionResponse(int serialNumber, String transactionType, String transactionId, String transactionTo,
-                              Date transactionDate, long transactionAmount, int customerId, long initialDeposit,
-                              long availableBalance, String transactionMode) {
+    public TransactionResponse(Integer serialNumber, String transactionType, String transactionId,
+                               String transactionTo, Instant transactionDate, BigDecimal transactionAmount,
+                               Integer customerId, BigDecimal initialDeposit, BigDecimal availableBalance,
+                               String transactionMode, String transactionStatus) {
         this.serialNumber = serialNumber;
         this.transactionType = transactionType;
         this.transactionId = transactionId;
@@ -30,10 +38,11 @@ public class TransactionResponse {
         this.initialDeposit = initialDeposit;
         this.availableBalance = availableBalance;
         this.transactionMode = transactionMode;
+        this.transactionStatus = transactionStatus;
     }
 
-    public int getSerialNumber() { return serialNumber; }
-    public void setSerialNumber(int serialNumber) { this.serialNumber = serialNumber; }
+    public Integer getSerialNumber() { return serialNumber; }
+    public void setSerialNumber(Integer serialNumber) { this.serialNumber = serialNumber; }
 
     public String getTransactionType() { return transactionType; }
     public void setTransactionType(String transactionType) { this.transactionType = transactionType; }
@@ -44,21 +53,24 @@ public class TransactionResponse {
     public String getTransactionTo() { return transactionTo; }
     public void setTransactionTo(String transactionTo) { this.transactionTo = transactionTo; }
 
-    public Date getTransactionDate() { return transactionDate; }
-    public void setTransactionDate(Date transactionDate) { this.transactionDate = transactionDate; }
+    public Instant getTransactionDate() { return transactionDate; }
+    public void setTransactionDate(Instant transactionDate) { this.transactionDate = transactionDate; }
 
-    public long getTransactionAmount() { return transactionAmount; }
-    public void setTransactionAmount(long transactionAmount) { this.transactionAmount = transactionAmount; }
+    public BigDecimal getTransactionAmount() { return transactionAmount; }
+    public void setTransactionAmount(BigDecimal transactionAmount) { this.transactionAmount = transactionAmount; }
 
-    public int getCustomerId() { return customerId; }
-    public void setCustomerId(int customerId) { this.customerId = customerId; }
+    public Integer getCustomerId() { return customerId; }
+    public void setCustomerId(Integer customerId) { this.customerId = customerId; }
 
-    public long getInitialDeposit() { return initialDeposit; }
-    public void setInitialDeposit(long initialDeposit) { this.initialDeposit = initialDeposit; }
+    public BigDecimal getInitialDeposit() { return initialDeposit; }
+    public void setInitialDeposit(BigDecimal initialDeposit) { this.initialDeposit = initialDeposit; }
 
-    public long getAvailableBalance() { return availableBalance; }
-    public void setAvailableBalance(long availableBalance) { this.availableBalance = availableBalance; }
+    public BigDecimal getAvailableBalance() { return availableBalance; }
+    public void setAvailableBalance(BigDecimal availableBalance) { this.availableBalance = availableBalance; }
 
     public String getTransactionMode() { return transactionMode; }
     public void setTransactionMode(String transactionMode) { this.transactionMode = transactionMode; }
+
+    public String getTransactionStatus() { return transactionStatus; }
+    public void setTransactionStatus(String transactionStatus) { this.transactionStatus = transactionStatus; }
 }

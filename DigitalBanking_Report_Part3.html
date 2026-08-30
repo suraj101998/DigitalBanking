@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>DigitalBanking Report – Part 3 (Pages 21–30)</title>
+<style>
+  body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.5;
+         color: #000; background: #fff; margin: 0; padding: 0; }
+  .page { width: 210mm; min-height: 297mm; margin: 0 auto 20px auto;
+          padding: 25mm 25mm 20mm 30mm; box-sizing: border-box; border: 1px solid #ccc; }
+  h1 { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 6pt; }
+  h2 { font-size: 14pt; font-weight: bold; margin-top: 18pt; margin-bottom: 6pt; }
+  h3 { font-size: 13pt; font-weight: bold; margin-top: 14pt; margin-bottom: 4pt; }
+  h4 { font-size: 12pt; font-weight: bold; margin-top: 10pt; margin-bottom: 4pt; }
+  p  { text-align: justify; margin-bottom: 8pt; }
+  table { width: 100%; border-collapse: collapse; margin: 10pt 0; font-size: 11pt; }
+  th, td { border: 1px solid #000; padding: 4pt 6pt; text-align: left; vertical-align: top; }
+  th { background: #d9d9d9; font-weight: bold; text-align: center; }
+  .caption-above { font-weight: bold; text-align: center; font-size: 11pt; margin-bottom: 4pt; }
+  .caption-below { font-style: italic; text-align: center; font-size: 10pt; margin-top: 4pt; margin-bottom: 10pt; }
+  .page-num { text-align: right; font-size: 10pt; margin-bottom: 4pt; }
+  pre { font-family: "Courier New", monospace; font-size: 9pt; background: #f5f5f5;
+        border: 1px solid #ccc; padding: 8pt; overflow-x: auto; margin: 8pt 0; white-space: pre-wrap; }
+  svg { display: block; margin: 8pt auto; }
+  .section-divider { border-top: 1px solid #000; margin: 18pt 0 10pt 0; }
+  ul, ol { margin-left: 20pt; margin-bottom: 8pt; }
+  li { margin-bottom: 3pt; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════ PAGE 21 -->
+<div class="page">
+  <div class="page-num">21</div>
+  <h2>Chapter 4: Class Diagrams and System Architecture</h2>
+
+  <h3>4.1 Introduction</h3>
+  <p>This chapter presents the structural design of the DigitalBanking application through Unified Modelling Language (UML) class diagrams. These diagrams represent the entity layer, service layer, security filter chain, and repository abstractions as they are implemented in the production codebase. Every class, field, and relationship shown has a direct counterpart in the Java source files located under <code>src/main/java/com/example/pi/</code>.</p>
+  <p>The application follows a strict layered architecture: Controller → Service → Repository → Entity. Dependencies flow only downward; the entity layer has no dependency on any other layer. The security layer wraps the controller layer as a cross-cutting concern implemented through servlet filters registered in <code>SecurityConfiguration</code>.</p>
+
+  <h3>4.2 Core Entity Class Diagram</h3>
+  <p>The entity layer maps directly onto the six relational tables that constitute the database schema. Each entity class is annotated with <code>@Entity</code> and carries JPA column mappings, validation constraints, and Hibernate-specific annotations. Figure 4.1 shows the six entities and their relationships.</p>
+
+  <!-- Entity diagram as SVG -->
+  <svg width="680" height="400" viewBox="0 0 680 400" font-family="Times New Roman, serif" font-size="9">
+    <!-- Customers box -->
+    <rect x="10" y="10" width="145" height="175" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="10" y="10" width="145" height="18" fill="#d9d9d9" stroke="#000"/>
+    <text x="82" y="23" text-anchor="middle" font-weight="bold">«entity» Customers</text>
+    <line x1="10" y1="28" x2="155" y2="28" stroke="#000"/>
+    <text x="14" y="40">- customerId: Integer [PK]</text>
+    <text x="14" y="52">- name: String</text>
+    <text x="14" y="64">- email: String [unique]</text>
+    <text x="14" y="76">- phone: String</text>
+    <text x="14" y="88">- dob: LocalDate</text>
+    <text x="14" y="100">- idType: String</text>
+    <text x="14" y="112">- idNum: String [unique]</text>
+    <text x="14" y="124">- accountStatus: AccountStatus</text>
+    <text x="14" y="136">- deleted: boolean</text>
+    <text x="14" y="148">- deletedAt: Instant</text>
+    <text x="14" y="160">- userId: Integer</text>
+    <line x1="10" y1="165" x2="155" y2="165" stroke="#000"/>
+    <text x="14" y="177">+ softDelete(): void</text>
+
+    <!-- Users box -->
+    <rect x="10" y="200" width="145" height="150" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="10" y="200" width="145" height="18" fill="#d9d9d9" stroke="#000"/>
+    <text x="82" y="213" text-anchor="middle" font-weight="bold">«entity» User</text>
+    <line x1="10" y1="218" x2="155" y2="218" stroke="#000"/>
+    <text x="14" y="230">- id: int [PK]</text>
+    <text x="14" y="242">- userName: String [unique]</text>
+    <text x="14" y="254">- password: String [BCrypt]</text>
+    <text x="14" y="266">- active: boolean</text>
+    <text x="14" y="278">- roles: String</text>
+    <text x="14" y="290">- failedLoginAttempts: int</text>
+    <text x="14" y="302">- lockedUntil: Instant</text>
+    <line x1="10" y1="308" x2="155" y2="308" stroke="#000"/>
+    <text x="14" y="320">+ recordFailedLogin()</text>
+    <text x="14" y="332">+ recordSuccessfulLogin()</text>
+    <text x="14" y="344">+ isAccountLocked(): boolean</text>
+
+    <!-- BankAccount box -->
+    <rect x="200" y="10" width="150" height="160" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="200" y="10" width="150" height="18" fill="#d9d9d9" stroke="#000"/>
+    <text x="275" y="23" text-anchor="middle" font-weight="bold">«entity» BankAccount</text>
+    <line x1="200" y1="28" x2="350" y2="28" stroke="#000"/>
+    <text x="204" y="40">- id: Long [PK]</text>
+    <text x="204" y="52">- accountNumber: String [UK]</text>
+    <text x="204" y="64">- balance: BigDecimal(19,4)</text>
+    <text x="204" y="76">- initialDeposit: BigDecimal</text>
+    <text x="204" y="88">- currency: String</text>
+    <text x="204" y="100">- status: AccountStatus</text>
+    <text x="204" y="112">- version: Long [@Version]</text>
+    <text x="204" y="124">- customerId: Integer [FK]</text>
+    <line x1="200" y1="130" x2="350" y2="130" stroke="#000"/>
+    <text x="204" y="142">+ getBalance()</text>
+    <text x="204" y="154">+ setBalance(BigDecimal)</text>
+
+    <!-- Transactions box -->
+    <rect x="200" y="190" width="160" height="205" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="200" y="190" width="160" height="18" fill="#d9d9d9" stroke="#000"/>
+    <text x="280" y="203" text-anchor="middle" font-weight="bold">«entity» Transactions</text>
+    <line x1="200" y1="208" x2="360" y2="208" stroke="#000"/>
+    <text x="204" y="220">- serialNumber: Integer [PK]</text>
+    <text x="204" y="232">- transactionId: String [UK]</text>
+    <text x="204" y="244">- transactionType: TxnType</text>
+    <text x="204" y="256">- transactionMode: TxnMode</text>
+    <text x="204" y="268">- transactionStatus: TxnStatus</text>
+    <text x="204" y="280">- transactionDate: Instant</text>
+    <text x="204" y="292">- transactionAmount: BigDecimal</text>
+    <text x="204" y="304">- initialDeposit: BigDecimal</text>
+    <text x="204" y="316">- availableBalance: BigDecimal</text>
+    <text x="204" y="328">- customerId: Integer [FK]</text>
+    <text x="204" y="340">- idempotencyKey: String</text>
+    <text x="204" y="352">- version: Long [@Version]</text>
+    <line x1="200" y1="358" x2="360" y2="358" stroke="#000"/>
+    <text x="204" y="370">@PreUpdate guard()</text>
+
+    <!-- IdempotencyKey box -->
+    <rect x="410" y="10" width="155" height="150" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="410" y="10" width="155" height="18" fill="#d9d9d9" stroke="#000"/>
+    <text x="487" y="23" text-anchor="middle" font-weight="bold">«entity» IdempotencyKey</text>
+    <line x1="410" y1="28" x2="565" y2="28" stroke="#000"/>
+    <text x="414" y="40">- id: Long [PK]</text>
+    <text x="414" y="52">- idempotencyKey: String [UK]</text>
+    <text x="414" y="64">- transactionId: String</text>
+    <text x="414" y="76">- responseStatus: int</text>
+    <text x="414" y="88">- responseBody: String (TEXT)</text>
+    <text x="414" y="100">- createdAt: Instant</text>
+    <text x="414" y="112">- customerId: Integer</text>
+
+    <!-- RefreshToken box -->
+    <rect x="410" y="190" width="155" height="135" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="410" y="190" width="155" height="18" fill="#d9d9d9" stroke="#000"/>
+    <text x="487" y="203" text-anchor="middle" font-weight="bold">«entity» RefreshToken</text>
+    <line x1="410" y1="208" x2="565" y2="208" stroke="#000"/>
+    <text x="414" y="220">- id: Long [PK]</text>
+    <text x="414" y="232">- token: String [unique]</text>
+    <text x="414" y="244">- userId: Integer [FK, UK]</text>
+    <text x="414" y="256">- expiresAt: Instant</text>
+    <text x="414" y="268">- createdAt: Instant</text>
+    <line x1="410" y1="274" x2="565" y2="274" stroke="#000"/>
+    <text x="414" y="286">+ isExpired(): boolean</text>
+
+    <!-- Relationships: Customers → BankAccount (1:1) -->
+    <line x1="155" y1="60" x2="200" y2="60" stroke="#000" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="160" y="56" font-size="8">1</text>
+    <text x="188" y="56" font-size="8">1</text>
+
+    <!-- Customers → Transactions (1:N) -->
+    <line x1="155" y1="80" x2="200" y2="280" stroke="#000" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="160" y="90" font-size="8">1</text>
+    <text x="190" y="270" font-size="8">N</text>
+
+    <!-- Users → RefreshToken (1:1) -->
+    <line x1="155" y1="260" x2="410" y2="260" stroke="#000" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="160" y="256" font-size="8">1</text>
+    <text x="400" y="256" font-size="8">1</text>
+  </svg>
+  <div class="caption-below">Figure 4.1 – Entity Class Diagram showing all six JPA entities and their associations</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ PAGE 22 -->
+<div class="page">
+  <div class="page-num">22</div>
+
+  <h3>4.3 Enum Types</h3>
+  <p>Four Java enum types provide type-safe domain values that replace the raw string constants used in the original codebase. Each enum is stored as a VARCHAR column via <code>@Enumerated(EnumType.STRING)</code>, ensuring that database values remain human-readable and that invalid values are rejected by Hibernate at persist time rather than silently stored as integers.</p>
+
+  <div class="caption-above">Table 4.01 – Java Enum Types and Their Values</div>
+  <table>
+    <tr><th>Enum</th><th>Values</th><th>Used By</th></tr>
+    <tr><td>TransactionType</td><td>CREDIT, DEBIT</td><td>Transactions.transactionType</td></tr>
+    <tr><td>TransactionMode</td><td>UPI, NEFT, RTGS, IMPS, CASH, CHEQUE, ONLINE</td><td>Transactions.transactionMode</td></tr>
+    <tr><td>TransactionStatus</td><td>INITIATED, PROCESSING, SUCCESS, FAILED, REVERSED, CANCELLED</td><td>Transactions.transactionStatus</td></tr>
+    <tr><td>AccountStatus</td><td>ACTIVE, BLOCKED, FROZEN, CLOSED, DORMANT</td><td>BankAccount.status, Customers.accountStatus</td></tr>
+  </table>
+
+  <h3>4.4 Service Layer Class Diagram</h3>
+  <p>The service layer contains three principal service classes, each implementing a corresponding interface. Figure 4.2 shows the service hierarchy with key method signatures. All dependencies are injected through constructors, making the services fully testable with Mockito without requiring a Spring context.</p>
+
+  <svg width="680" height="320" viewBox="0 0 680 320" font-family="Times New Roman, serif" font-size="9">
+    <!-- TransactionService interface -->
+    <rect x="10" y="10" width="195" height="100" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="10" y="10" width="195" height="18" fill="#e8e8e8" stroke="#000"/>
+    <text x="107" y="23" text-anchor="middle" font-weight="bold">«interface» TransactionService</text>
+    <line x1="10" y1="28" x2="205" y2="28" stroke="#000"/>
+    <text x="14" y="40">+ createTransaction(...): TxnResponse</text>
+    <text x="14" y="52">+ getCustomerTransactions(...): Page</text>
+    <text x="14" y="64">+ getBalance(int): BalanceResponse</text>
+    <text x="14" y="76">+ getTransactionsByType(...): Page</text>
+    <text x="14" y="88">+ reverseTransaction(int): TxnResponse</text>
+
+    <!-- TransactionServiceImpl -->
+    <rect x="10" y="130" width="195" height="100" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="10" y="130" width="195" height="18" fill="#d9d9d9" stroke="#000"/>
+    <text x="107" y="143" text-anchor="middle" font-weight="bold">TransactionServiceImpl</text>
+    <line x1="10" y1="148" x2="205" y2="148" stroke="#000"/>
+    <text x="14" y="160">- transactionsRepository</text>
+    <text x="14" y="172">- bankAccountRepository</text>
+    <text x="14" y="184">- idempotencyKeyRepository</text>
+    <text x="14" y="196">- limitConfig: TxnLimitConfig</text>
+    <text x="14" y="208">- meterRegistry: MeterRegistry</text>
+    <line x1="10" y1="214" x2="205" y2="214" stroke="#000"/>
+    <text x="14" y="226">+ doCreateTransaction(...)  </text>
+
+    <!-- Arrow implements -->
+    <line x1="107" y1="110" x2="107" y2="130" stroke="#000" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+    <!-- TransferService interface -->
+    <rect x="240" y="10" width="180" height="70" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="240" y="10" width="180" height="18" fill="#e8e8e8" stroke="#000"/>
+    <text x="330" y="23" text-anchor="middle" font-weight="bold">«interface» TransferService</text>
+    <line x1="240" y1="28" x2="420" y2="28" stroke="#000"/>
+    <text x="244" y="40">+ transfer(TransferRequest,</text>
+    <text x="244" y="52">     String): TransferResponse</text>
+
+    <!-- TransferServiceImpl -->
+    <rect x="240" y="130" width="180" height="100" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="240" y="130" width="180" height="18" fill="#d9d9d9" stroke="#000"/>
+    <text x="330" y="143" text-anchor="middle" font-weight="bold">TransferServiceImpl</text>
+    <line x1="240" y1="148" x2="420" y2="148" stroke="#000"/>
+    <text x="244" y="160">- bankAccountRepository</text>
+    <text x="244" y="172">- transactionsRepository</text>
+    <text x="244" y="184">- idempotencyKeyRepository</text>
+    <text x="244" y="196">- objectMapper: ObjectMapper</text>
+    <line x1="240" y1="202" x2="420" y2="202" stroke="#000"/>
+    <text x="244" y="214">+ deadlock-safe lock ordering</text>
+
+    <line x1="330" y1="80" x2="330" y2="130" stroke="#000" stroke-dasharray="4,3"/>
+
+    <!-- CustomerService -->
+    <rect x="450" y="10" width="185" height="100" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="450" y="10" width="185" height="18" fill="#e8e8e8" stroke="#000"/>
+    <text x="542" y="23" text-anchor="middle" font-weight="bold">«interface» CustomerService</text>
+    <line x1="450" y1="28" x2="635" y2="28" stroke="#000"/>
+    <text x="454" y="40">+ addCustomer(Customers)</text>
+    <text x="454" y="52">+ updateCustomer(int, Customers)</text>
+    <text x="454" y="64">+ softDeleteCustomer(int)</text>
+    <text x="454" y="76">+ getCustomerById(int)</text>
+    <text x="454" y="88">+ getAllCustomers(): List</text>
+
+    <rect x="450" y="130" width="185" height="75" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="450" y="130" width="185" height="18" fill="#d9d9d9" stroke="#000"/>
+    <text x="542" y="143" text-anchor="middle" font-weight="bold">CustomerServiceImpl</text>
+    <line x1="450" y1="148" x2="635" y2="148" stroke="#000"/>
+    <text x="454" y="160">- customerRepository</text>
+    <text x="454" y="172">- bankAccountRepository</text>
+    <line x1="450" y1="178" x2="635" y2="178" stroke="#000"/>
+    <text x="454" y="190">+ toResponse(Customers)</text>
+
+    <line x1="542" y1="110" x2="542" y2="130" stroke="#000" stroke-dasharray="4,3"/>
+
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#000"/>
+      </marker>
+    </defs>
+  </svg>
+  <div class="caption-below">Figure 4.2 – Service Layer Class Diagram: interfaces and implementations with key fields</div>
+
+  <h3>4.5 Repository Layer</h3>
+  <p>All repositories extend Spring Data JPA's <code>JpaRepository</code>, inheriting standard CRUD and pagination operations. Custom query methods are declared using the Spring Data method-naming convention or annotated with <code>@Query</code> for complex JPQL. The most notable custom method is <code>findByCustomerIdForUpdate</code> in <code>BankAccountRepository</code>, which acquires a database-level pessimistic write lock (<code>SELECT … FOR UPDATE</code>), essential for safe concurrent balance modifications.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ PAGE 23 -->
+<div class="page">
+  <div class="page-num">23</div>
+
+  <h3>4.6 Security Filter Chain Architecture</h3>
+  <p>HTTP requests traverse a chain of servlet filters before reaching any Spring MVC controller. The chain is ordered as follows, from outermost to innermost:</p>
+  <ol>
+    <li><strong>CorrelationIdFilter (Order 1)</strong> – Reads or generates an <code>X-Correlation-Id</code> UUID and stores it in SLF4J MDC so that every subsequent log line within the same request thread includes the trace identifier.</li>
+    <li><strong>RequestResponseLoggingFilter (Order −100)</strong> – Logs the HTTP method, URI, response status, and elapsed time for every request/response pair.</li>
+    <li><strong>RateLimitingFilter (Order −90)</strong> – Applies a Bucket4j token-bucket rate limit of 100 requests per minute per client IP. Requests exceeding the limit receive an HTTP 429 response immediately, before any authentication logic runs.</li>
+    <li><strong>JwtAuthenticationFilter</strong> – Extracts the Bearer token from the <code>Authorization</code> header, validates its signature and claims using <code>JwtUtils</code>, and populates the Spring Security <code>SecurityContextHolder</code>.</li>
+    <li><strong>UsernamePasswordAuthenticationFilter</strong> – Spring Security standard; bypassed for stateless JWT flow.</li>
+  </ol>
+
+  <!-- Filter chain SVG -->
+  <svg width="620" height="110" viewBox="0 0 620 110" font-family="Times New Roman, serif" font-size="9">
+    <defs>
+      <marker id="ra" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#000"/>
+      </marker>
+    </defs>
+    <rect x="5"   y="30" width="100" height="40" fill="#f0f0f0" stroke="#000"/>
+    <text x="55"  y="47" text-anchor="middle" font-weight="bold">HTTP</text>
+    <text x="55"  y="61" text-anchor="middle">Request</text>
+
+    <line x1="105" y1="50" x2="125" y2="50" stroke="#000" marker-end="url(#ra)"/>
+    <rect x="125" y="20" width="95" height="60" fill="#fff" stroke="#000"/>
+    <text x="172" y="43" text-anchor="middle" font-weight="bold">Correlation</text>
+    <text x="172" y="55" text-anchor="middle">Id Filter</text>
+    <text x="172" y="67" text-anchor="middle" font-size="8">(Order 1)</text>
+
+    <line x1="220" y1="50" x2="238" y2="50" stroke="#000" marker-end="url(#ra)"/>
+    <rect x="238" y="20" width="95" height="60" fill="#fff" stroke="#000"/>
+    <text x="285" y="43" text-anchor="middle" font-weight="bold">Rate Limit</text>
+    <text x="285" y="55" text-anchor="middle">Filter</text>
+    <text x="285" y="67" text-anchor="middle" font-size="8">Bucket4j / IP</text>
+
+    <line x1="333" y1="50" x2="351" y2="50" stroke="#000" marker-end="url(#ra)"/>
+    <rect x="351" y="20" width="95" height="60" fill="#fff" stroke="#000"/>
+    <text x="398" y="43" text-anchor="middle" font-weight="bold">JWT Auth</text>
+    <text x="398" y="55" text-anchor="middle">Filter</text>
+    <text x="398" y="67" text-anchor="middle" font-size="8">Bearer token</text>
+
+    <line x1="446" y1="50" x2="464" y2="50" stroke="#000" marker-end="url(#ra)"/>
+    <rect x="464" y="20" width="100" height="60" fill="#d9f5d9" stroke="#000"/>
+    <text x="514" y="43" text-anchor="middle" font-weight="bold">Controller</text>
+    <text x="514" y="55" text-anchor="middle">Layer</text>
+    <text x="514" y="67" text-anchor="middle" font-size="8">Authorized</text>
+
+    <!-- HTTP 429 drop -->
+    <text x="263" y="95" text-anchor="middle" font-size="8" fill="red">429 if limit exceeded ↑</text>
+    <!-- HTTP 401 drop -->
+    <text x="376" y="10" text-anchor="middle" font-size="8" fill="red">401 if token invalid ↑</text>
+  </svg>
+  <div class="caption-below">Figure 4.3 – HTTP Request Filter Chain showing ordered filter processing</div>
+
+  <h3>4.7 DTO Layer Design</h3>
+  <p>Response Data Transfer Objects (DTOs) are used as the return type of all controller endpoints, ensuring that internal entity fields (such as the BCrypt-hashed password, the optimistic lock version counter, or soft-delete timestamp) are never exposed through the API surface. The following DTOs are implemented:</p>
+
+  <div class="caption-above">Table 4.02 – Response DTO Classes and Their Key Fields</div>
+  <table>
+    <tr><th>DTO Class</th><th>Fields Exposed</th><th>Replaces</th></tr>
+    <tr><td>CustomerResponse</td><td>customerId, name, email, phone, accountStatus, accountNumber</td><td>Raw Customers entity</td></tr>
+    <tr><td>TransactionResponse</td><td>serialNumber, transactionId, transactionType, amount, balance, status, date, mode</td><td>Raw Transactions entity</td></tr>
+    <tr><td>TransferResponse</td><td>transferId, debitTxnId, creditTxnId, sourceAccount, destAccount, amount, status, timestamp</td><td>Pair of Transactions entities</td></tr>
+    <tr><td>BalanceResponse</td><td>customerId, balance, initialDeposit, currency, accountStatus</td><td>BankAccount balance field only</td></tr>
+    <tr><td>ErrorResponse</td><td>status, error, message, path, timestamp, traceId</td><td>Raw exception stack traces</td></tr>
+    <tr><td>PaginationResponse&lt;T&gt;</td><td>content, page, size, totalElements, totalPages, last</td><td>Spring Page&lt;T&gt; raw object</td></tr>
+  </table>
+
+  <h3>4.8 Exception Hierarchy</h3>
+  <p>The original codebase used generic <code>RuntimeException</code> throws throughout the service layer, making it impossible for the global exception handler to distinguish between a business error (insufficient balance) and an unexpected infrastructure failure. The redesigned exception hierarchy provides seven domain-specific exceptions, all extending <code>RuntimeException</code>, with a dedicated HTTP status mapping in <code>GlobalExceptionHandler</code>.</p>
+
+  <div class="caption-above">Table 4.03 – Domain Exception Classes and HTTP Mappings</div>
+  <table>
+    <tr><th>Exception Class</th><th>HTTP Status</th><th>Trigger Condition</th></tr>
+    <tr><td>CustomerNotFoundException</td><td>404 Not Found</td><td>Customer ID not present in database</td></tr>
+    <tr><td>AccountNotFoundException</td><td>404 Not Found</td><td>BankAccount for given customer not found</td></tr>
+    <tr><td>InsufficientBalanceException</td><td>422 Unprocessable Entity</td><td>Debit amount exceeds current balance</td></tr>
+    <tr><td>InvalidTransactionException</td><td>400 Bad Request</td><td>Invalid enum value, negative amount, same-account transfer</td></tr>
+    <tr><td>DuplicateTransactionException</td><td>409 Conflict</td><td>Idempotency key used; replay body unavailable</td></tr>
+    <tr><td>ConcurrentTransactionException</td><td>409 Conflict</td><td>OptimisticLockingFailureException caught</td></tr>
+    <tr><td>UnauthorizedAccountAccessException</td><td>403 Forbidden</td><td>Authenticated user accessing another user's account</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ PAGE 24 -->
+<div class="page">
+  <div class="page-num">24</div>
+
+  <h2>Chapter 5: Database Schema Design</h2>
+
+  <h3>5.1 Introduction</h3>
+  <p>The database design underpins the financial correctness guarantees of the DigitalBanking application. This chapter documents every table, column, constraint, and index in the production schema as defined by the two Flyway migration scripts: <code>V1__initial_schema.sql</code> and <code>V2__add_idempotency.sql</code>. The database engine is MySQL 8 (InnoDB storage engine, utf8mb4 character set). H2 in-memory mode is used for the unit and repository test suite.</p>
+  <p>All financial amounts are stored as <code>DECIMAL(19,4)</code>, which supports values up to 999,999,999,999,999.9999 with four decimal places, sufficient for Indian Rupee transactions with sub-paisa precision. Timestamps are stored as <code>DATETIME(6)</code>, providing microsecond-level resolution mapped to Java's <code>java.time.Instant</code>.</p>
+
+  <h3>5.2 Table: customers</h3>
+  <div class="caption-above">Table 5.01 – customers Table Column Specifications</div>
+  <table>
+    <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+    <tr><td>customer_id</td><td>INT</td><td>PK, AUTO_INCREMENT, NOT NULL</td><td>Surrogate primary key</td></tr>
+    <tr><td>customer_name</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Full legal name of the customer</td></tr>
+    <tr><td>account_number</td><td>VARCHAR(20)</td><td>NULL</td><td>Legacy denormalized account number reference</td></tr>
+    <tr><td>identity_type</td><td>VARCHAR(30)</td><td>NULL</td><td>Type of government ID (PAN, Aadhaar, Passport)</td></tr>
+    <tr><td>identity_number</td><td>VARCHAR(50)</td><td>UNIQUE</td><td>Government-issued ID number; unique per customer</td></tr>
+    <tr><td>date_of_birth</td><td>DATE</td><td>NULL</td><td>Customer date of birth for KYC</td></tr>
+    <tr><td>mobile_number</td><td>VARCHAR(15)</td><td>NULL</td><td>Mobile phone (validated: 10 digits)</td></tr>
+    <tr><td>email</td><td>VARCHAR(150)</td><td>UNIQUE, NULL</td><td>Email address; unique per customer</td></tr>
+    <tr><td>address</td><td>VARCHAR(300)</td><td>NULL</td><td>Full postal address</td></tr>
+    <tr><td>sex</td><td>VARCHAR(10)</td><td>NULL</td><td>Customer gender</td></tr>
+    <tr><td>user_id</td><td>INT</td><td>NULL</td><td>FK linkage to users table (nullable: no account yet)</td></tr>
+    <tr><td>account_status</td><td>VARCHAR(20)</td><td>NOT NULL, DEFAULT 'ACTIVE'</td><td>AccountStatus enum: ACTIVE / BLOCKED / FROZEN / CLOSED / DORMANT</td></tr>
+    <tr><td>is_deleted</td><td>TINYINT(1)</td><td>NOT NULL, DEFAULT 0</td><td>Soft-delete flag; physical deletion never performed</td></tr>
+    <tr><td>deleted_at</td><td>DATETIME(6)</td><td>NULL</td><td>Timestamp of logical deletion</td></tr>
+  </table>
+
+  <p><strong>Rationale:</strong> Physical deletion of customer records is prohibited in banking systems due to regulatory audit requirements. The <code>is_deleted</code> column implements a soft-delete pattern: DELETE API calls set <code>is_deleted=1</code> and <code>deleted_at=NOW()</code> rather than removing the row. All queries in the service layer filter on <code>is_deleted=0</code>.</p>
+
+  <h3>5.3 Table: users</h3>
+  <div class="caption-above">Table 5.02 – users Table Column Specifications</div>
+  <table>
+    <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+    <tr><td>id</td><td>INT</td><td>PK, AUTO_INCREMENT</td><td>Surrogate primary key</td></tr>
+    <tr><td>user_name</td><td>VARCHAR(100)</td><td>NOT NULL, UNIQUE</td><td>Login username; must be unique across all users</td></tr>
+    <tr><td>password</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>BCrypt-hashed password (60 characters minimum)</td></tr>
+    <tr><td>active</td><td>TINYINT(1)</td><td>NOT NULL, DEFAULT 1</td><td>Account enabled/disabled flag</td></tr>
+    <tr><td>roles</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Comma-separated role string e.g. ROLE_USER,ROLE_ADMIN</td></tr>
+    <tr><td>customer_id</td><td>INT</td><td>NULL, FK → customers</td><td>Link to associated customer profile</td></tr>
+    <tr><td>failed_login_attempts</td><td>INT</td><td>NOT NULL, DEFAULT 0</td><td>Consecutive failed login counter; reset on success</td></tr>
+    <tr><td>locked_until</td><td>DATETIME(6)</td><td>NULL</td><td>Lockout expiry; NULL means account is not locked</td></tr>
+  </table>
+  <p><strong>Account Lockout:</strong> After five consecutive failed login attempts, <code>locked_until</code> is set to <code>NOW() + 15 minutes</code> by the <code>User.recordFailedLogin()</code> method. The authentication service checks this field before accepting credentials. The lock is automatically cleared on the next successful login via <code>User.recordSuccessfulLogin()</code>.</p>
+
+  <p><strong>Note on table name:</strong> The original entity was mapped to the table named <code>user</code>, which is a reserved keyword in the SQL standard and causes syntax errors with the H2 SQL compatibility layer. The migration renames this table to <code>users</code>.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ PAGE 25 -->
+<div class="page">
+  <div class="page-num">25</div>
+
+  <h3>5.4 Table: bank_accounts</h3>
+  <div class="caption-above">Table 5.03 – bank_accounts Table Column Specifications</div>
+  <table>
+    <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+    <tr><td>account_id</td><td>BIGINT</td><td>PK, AUTO_INCREMENT</td><td>Surrogate primary key</td></tr>
+    <tr><td>account_number</td><td>VARCHAR(20)</td><td>NOT NULL, UNIQUE</td><td>External account identifier (e.g. ACC000042)</td></tr>
+    <tr><td>balance</td><td>DECIMAL(19,4)</td><td>NOT NULL, DEFAULT 0</td><td>Current account balance; single source of truth</td></tr>
+    <tr><td>initial_deposit</td><td>DECIMAL(19,4)</td><td>NOT NULL, DEFAULT 0</td><td>Opening deposit amount recorded at account creation</td></tr>
+    <tr><td>currency</td><td>VARCHAR(3)</td><td>NOT NULL, DEFAULT 'INR'</td><td>ISO 4217 currency code</td></tr>
+    <tr><td>status</td><td>VARCHAR(20)</td><td>NOT NULL, DEFAULT 'ACTIVE'</td><td>AccountStatus enum value</td></tr>
+    <tr><td>version</td><td>BIGINT</td><td>NOT NULL, DEFAULT 0</td><td>Hibernate @Version for optimistic locking</td></tr>
+    <tr><td>customer_id</td><td>INT</td><td>NOT NULL, FK → customers</td><td>Owning customer reference</td></tr>
+  </table>
+  <p><strong>Financial Correctness:</strong> Separating the account balance into a dedicated <code>bank_accounts</code> table with a <code>version</code> column resolves a critical race condition in the original schema where balance was derived from the most recent transaction record. Two concurrent transactions could each read the same "last balance," both subtract from it, and write back, resulting in a lost update. The <code>version</code> column ensures that the second writer will detect the stale version and fail with <code>ObjectOptimisticLockingFailureException</code>, which the service layer translates into a <code>ConcurrentTransactionException</code> and HTTP 409 to the client.</p>
+
+  <h3>5.5 Table: transactions</h3>
+  <div class="caption-above">Table 5.04 – transactions Table Column Specifications</div>
+  <table>
+    <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+    <tr><td>serial_number</td><td>INT</td><td>PK, AUTO_INCREMENT</td><td>Auto-incrementing surrogate key</td></tr>
+    <tr><td>transaction_id</td><td>VARCHAR(50)</td><td>NOT NULL, UNIQUE</td><td>UUID-based business identifier (TXN + 32 hex chars)</td></tr>
+    <tr><td>transaction_type</td><td>VARCHAR(10)</td><td>NOT NULL</td><td>CREDIT or DEBIT</td></tr>
+    <tr><td>transaction_mode</td><td>VARCHAR(20)</td><td>NULL</td><td>Payment channel: UPI/NEFT/RTGS/IMPS/CASH/CHEQUE/ONLINE</td></tr>
+    <tr><td>transaction_status</td><td>VARCHAR(20)</td><td>NOT NULL, DEFAULT 'SUCCESS'</td><td>Lifecycle status of the transaction</td></tr>
+    <tr><td>transaction_to</td><td>VARCHAR(100)</td><td>NULL</td><td>Beneficiary account number or description</td></tr>
+    <tr><td>transaction_date</td><td>DATETIME(6)</td><td>NOT NULL</td><td>Microsecond-precision timestamp of the operation</td></tr>
+    <tr><td>transaction_amount</td><td>DECIMAL(19,4)</td><td>NOT NULL</td><td>Amount of the transaction</td></tr>
+    <tr><td>initial_deposit</td><td>DECIMAL(19,4)</td><td>NOT NULL</td><td>Balance snapshot before the transaction (ledger audit)</td></tr>
+    <tr><td>available_balance</td><td>DECIMAL(19,4)</td><td>NOT NULL</td><td>Balance snapshot after the transaction (ledger audit)</td></tr>
+    <tr><td>customer_id</td><td>INT</td><td>NOT NULL, FK → customers</td><td>Transaction owner</td></tr>
+    <tr><td>idempotency_key</td><td>VARCHAR(64)</td><td>UNIQUE, NULL</td><td>Client-supplied deduplication key (added in V2)</td></tr>
+    <tr><td>version</td><td>BIGINT</td><td>NOT NULL, DEFAULT 0</td><td>Optimistic lock version on transaction record (added in V2)</td></tr>
+  </table>
+
+  <p><strong>Immutable Ledger:</strong> Once a transaction record is persisted with status SUCCESS, only the <code>transaction_status</code> field may change (e.g., to REVERSED on a reversal request). The <code>@PreUpdate</code> hook in <code>Transactions.java</code> guards against accidental mutation of amount, type, or customer reference. The <code>version</code> column on the transactions table acts as a secondary optimistic lock — any attempt to modify an already-committed entry in a concurrent scenario will raise a conflict rather than silently overwrite the record.</p>
+
+  <p><strong>Indexes:</strong> A composite index <code>idx_transactions_customer_date (customer_id, transaction_date DESC)</code> is created to support the most common query pattern: "give me all transactions for customer X, newest first." Without this index, MySQL would perform a full table scan over the transactions table for every pagination query, which becomes catastrophically slow as transaction volume grows.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ PAGE 26 -->
+<div class="page">
+  <div class="page-num">26</div>
+
+  <h3>5.6 Table: idempotency_keys</h3>
+  <div class="caption-above">Table 5.05 – idempotency_keys Table Column Specifications</div>
+  <table>
+    <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+    <tr><td>id</td><td>BIGINT</td><td>PK, AUTO_INCREMENT</td><td>Surrogate primary key</td></tr>
+    <tr><td>idempotency_key</td><td>VARCHAR(64)</td><td>NOT NULL, UNIQUE</td><td>Client-supplied UUID or hash string</td></tr>
+    <tr><td>transaction_id</td><td>VARCHAR(50)</td><td>NULL</td><td>Reference to the transaction created by this key</td></tr>
+    <tr><td>response_status</td><td>INT</td><td>NULL</td><td>HTTP status code of the original response</td></tr>
+    <tr><td>response_body</td><td>TEXT</td><td>NULL</td><td>JSON-serialized response body for replay</td></tr>
+    <tr><td>created_at</td><td>DATETIME(6)</td><td>NOT NULL</td><td>Timestamp of original processing</td></tr>
+    <tr><td>customer_id</td><td>INT</td><td>NULL</td><td>Customer who submitted the original request</td></tr>
+  </table>
+
+  <p><strong>Idempotency Design:</strong> When a client sends a payment request with an <code>Idempotency-Key</code> header, the service first queries <code>idempotency_keys</code> by that key. If a matching row exists, the stored <code>response_body</code> is deserialized and returned immediately — the payment is <em>not</em> processed again. If no row exists, the payment is processed and a new row is inserted. This pattern protects against double charges caused by network timeouts where the client retries a request that actually succeeded on the first attempt. The <code>UNIQUE</code> constraint on <code>idempotency_key</code> ensures that even if two concurrent retry requests arrive simultaneously, only one INSERT will succeed; the other will receive a duplicate key error and fall back to reading the existing record.</p>
+
+  <h3>5.7 Table: refresh_tokens</h3>
+  <div class="caption-above">Table 5.06 – refresh_tokens Table Column Specifications</div>
+  <table>
+    <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+    <tr><td>id</td><td>BIGINT</td><td>PK, AUTO_INCREMENT</td><td>Surrogate primary key</td></tr>
+    <tr><td>token</td><td>VARCHAR(128)</td><td>NOT NULL, UNIQUE</td><td>Cryptographically random refresh token value (UUID)</td></tr>
+    <tr><td>user_id</td><td>INT</td><td>NOT NULL, UNIQUE, FK → users</td><td>One refresh token per user; unique constraint enforces this</td></tr>
+    <tr><td>expires_at</td><td>DATETIME(6)</td><td>NOT NULL</td><td>Token expiry; default 7 days from issuance</td></tr>
+    <tr><td>created_at</td><td>DATETIME(6)</td><td>NOT NULL</td><td>Token issuance timestamp</td></tr>
+  </table>
+
+  <p><strong>Token Rotation:</strong> The <code>UNIQUE</code> constraint on <code>user_id</code> enforces a one-token-per-user policy. When a user calls <code>POST /api/v1/auth/refresh</code>, the existing refresh token is deleted and a new token is issued atomically within a single <code>@Transactional</code> boundary. This token rotation strategy prevents refresh token replay attacks: if a stolen refresh token is used, the legitimate user's subsequent refresh call will detect the missing token and re-authenticate from scratch.</p>
+
+  <h3>5.8 Entity Relationship Diagram</h3>
+
+  <svg width="640" height="310" viewBox="0 0 640 310" font-family="Times New Roman, serif" font-size="9">
+    <defs>
+      <marker id="fk" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <circle cx="3" cy="3" r="2.5" fill="none" stroke="#000" stroke-width="1"/>
+      </marker>
+    </defs>
+    <!-- customers (central) -->
+    <rect x="240" y="120" width="130" height="35" fill="#d9e8ff" stroke="#000" stroke-width="1.5"/>
+    <text x="305" y="134" text-anchor="middle" font-weight="bold">customers</text>
+    <text x="305" y="148" text-anchor="middle">PK: customer_id</text>
+
+    <!-- users -->
+    <rect x="20" y="120" width="120" height="35" fill="#e8ffe8" stroke="#000"/>
+    <text x="80" y="134" text-anchor="middle" font-weight="bold">users</text>
+    <text x="80" y="148" text-anchor="middle">FK: customer_id</text>
+    <line x1="140" y1="137" x2="240" y2="137" stroke="#000" stroke-width="1.2" stroke-dasharray="5,3"/>
+    <text x="150" y="132" font-size="8">1</text><text x="228" y="132" font-size="8">0..1</text>
+
+    <!-- bank_accounts -->
+    <rect x="460" y="120" width="155" height="35" fill="#fff5d9" stroke="#000"/>
+    <text x="537" y="134" text-anchor="middle" font-weight="bold">bank_accounts</text>
+    <text x="537" y="148" text-anchor="middle">FK: customer_id</text>
+    <line x1="370" y1="137" x2="460" y2="137" stroke="#000" stroke-width="1.2" stroke-dasharray="5,3"/>
+    <text x="375" y="132" font-size="8">1</text><text x="450" y="132" font-size="8">1</text>
+
+    <!-- transactions -->
+    <rect x="240" y="220" width="130" height="35" fill="#ffe8e8" stroke="#000"/>
+    <text x="305" y="234" text-anchor="middle" font-weight="bold">transactions</text>
+    <text x="305" y="248" text-anchor="middle">FK: customer_id</text>
+    <line x1="305" y1="155" x2="305" y2="220" stroke="#000" stroke-width="1.2" stroke-dasharray="5,3"/>
+    <text x="296" y="168" font-size="8">1</text><text x="296" y="212" font-size="8">N</text>
+
+    <!-- idempotency_keys -->
+    <rect x="80" y="230" width="140" height="35" fill="#f0e8ff" stroke="#000"/>
+    <text x="150" y="244" text-anchor="middle" font-weight="bold">idempotency_keys</text>
+    <text x="150" y="258" text-anchor="middle">txn_id ref, customer_id</text>
+    <line x1="240" y1="240" x2="220" y2="240" stroke="#000" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <!-- refresh_tokens -->
+    <rect x="20" y="30" width="135" height="35" fill="#e8f0ff" stroke="#000"/>
+    <text x="87" y="44" text-anchor="middle" font-weight="bold">refresh_tokens</text>
+    <text x="87" y="58" text-anchor="middle">FK: user_id → users.id</text>
+    <line x1="87" y1="65" x2="80" y2="120" stroke="#000" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="65" y="90" font-size="8">1:1</text>
+
+    <!-- Cardinality legend -->
+    <rect x="460" y="240" width="170" height="55" fill="#f9f9f9" stroke="#ccc"/>
+    <text x="545" y="256" text-anchor="middle" font-weight="bold" font-size="10">Legend</text>
+    <line x1="468" y1="268" x2="510" y2="268" stroke="#000" stroke-dasharray="5,3"/>
+    <text x="515" y="272" font-size="9">Foreign Key Ref</text>
+    <text x="468" y="286" font-size="9">1 → one  N → many  0..1 → optional</text>
+  </svg>
+  <div class="caption-below">Figure 5.1 – Entity Relationship Diagram showing all six tables and their foreign key relationships</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ PAGE 27 -->
+<div class="page">
+  <div class="page-num">27</div>
+
+  <h3>5.9 Flyway Migration Timeline</h3>
+  <p>Database schema changes are managed exclusively through Flyway versioned migration scripts. The schema is never modified directly or through Hibernate's <code>hbm2ddl</code> auto-DDL mechanism in non-development environments. This ensures that every environment (development, testing, staging, production) is running the identical schema version and that changes are tracked in version control alongside the application code.</p>
+
+  <div class="caption-above">Table 5.07 – Flyway Migration History</div>
+  <table>
+    <tr><th>Version</th><th>File</th><th>Description</th><th>Tables Affected</th></tr>
+    <tr>
+      <td>V1</td>
+      <td>V1__initial_schema.sql</td>
+      <td>Creates the initial schema with five tables, all FK constraints, unique keys, and the composite index on transactions.</td>
+      <td>customers, users, bank_accounts, transactions, refresh_tokens</td>
+    </tr>
+    <tr>
+      <td>V2</td>
+      <td>V2__add_idempotency.sql</td>
+      <td>Creates the idempotency_keys table. Adds <code>idempotency_key</code> and <code>version</code> columns to transactions with a unique key on idempotency_key.</td>
+      <td>idempotency_keys (new), transactions (altered)</td>
+    </tr>
+  </table>
+
+  <p>The Flyway configuration uses <code>spring.flyway.baseline-on-migrate=true</code> so that an existing database (from <code>ddl-auto=update</code> local development) is baselined at V0 before V1 and V2 are applied, preventing the migration from failing on a non-empty database. In production the environment variable <code>DB_FLYWAY_ENABLED=true</code> must be set; in development <code>spring.flyway.enabled</code> defaults to false to keep local iteration fast.</p>
+
+  <h3>5.10 Connection Pool Configuration</h3>
+  <p>The application uses Spring Boot's default HikariCP connection pool, tuned with the following parameters to handle concurrent banking workloads:</p>
+
+  <div class="caption-above">Table 5.08 – HikariCP Connection Pool Configuration</div>
+  <table>
+    <tr><th>Property</th><th>Value</th><th>Rationale</th></tr>
+    <tr><td>maximum-pool-size</td><td>20</td><td>Supports up to 20 concurrent database operations. Beyond this, requests queue in HikariCP until a connection is released.</td></tr>
+    <tr><td>minimum-idle</td><td>5</td><td>Keeps 5 warm connections ready at all times to eliminate connection establishment latency for normal traffic.</td></tr>
+    <tr><td>connection-timeout</td><td>30,000 ms</td><td>If no connection is available within 30 seconds, the request fails with <code>SQLTimeoutException</code> rather than waiting indefinitely.</td></tr>
+    <tr><td>idle-timeout</td><td>600,000 ms</td><td>Connections idle for more than 10 minutes are released back to the database, freeing MySQL's connection limit.</td></tr>
+    <tr><td>max-lifetime</td><td>1,800,000 ms</td><td>All connections are recycled every 30 minutes to prevent stale-connection issues from firewalls or MySQL's wait_timeout.</td></tr>
+    <tr><td>pool-name</td><td>DigitalBankingPool</td><td>Named pool for visibility in JMX and Micrometer metrics.</td></tr>
+  </table>
+
+  <h3>5.11 Indexing Strategy Summary</h3>
+  <p>The following indexes are defined in the schema to optimise the application's most frequent query paths:</p>
+
+  <div class="caption-above">Table 5.09 – Database Index Summary</div>
+  <table>
+    <tr><th>Table</th><th>Index Name</th><th>Columns</th><th>Purpose</th></tr>
+    <tr><td>customers</td><td>uk_customers_email</td><td>email</td><td>Unique constraint + fast lookup by email</td></tr>
+    <tr><td>customers</td><td>uk_customers_identity_number</td><td>identity_number</td><td>KYC uniqueness + lookup</td></tr>
+    <tr><td>users</td><td>uk_users_user_name</td><td>user_name</td><td>Unique username + fast login lookup</td></tr>
+    <tr><td>bank_accounts</td><td>uk_bank_accounts_account_number</td><td>account_number</td><td>Unique account number + transfer lookup</td></tr>
+    <tr><td>transactions</td><td>uk_transactions_transaction_id</td><td>transaction_id</td><td>Uniqueness guarantee + idempotency check</td></tr>
+    <tr><td>transactions</td><td>idx_transactions_customer_date</td><td>(customer_id, transaction_date DESC)</td><td>Paginated history queries — O(log N) instead of full scan</td></tr>
+    <tr><td>transactions</td><td>uk_transactions_idempotency_key</td><td>idempotency_key</td><td>Deduplication lookup in idempotency flow</td></tr>
+    <tr><td>idempotency_keys</td><td>uk_idempotency_key</td><td>idempotency_key</td><td>Fast idempotency check + duplicate INSERT detection</td></tr>
+    <tr><td>refresh_tokens</td><td>uk_refresh_tokens_token</td><td>token</td><td>Fast token validation lookup</td></tr>
+    <tr><td>refresh_tokens</td><td>uk_refresh_tokens_user_id</td><td>user_id</td><td>Enforce one-token-per-user + fast revocation</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ PAGE 28 -->
+<div class="page">
+  <div class="page-num">28</div>
+
+  <h3>5.12 Data Integrity Constraints Summary</h3>
+  <p>The following foreign key relationships are enforced at the database level by InnoDB. All references use the default <code>RESTRICT</code> behaviour, meaning a parent row cannot be deleted while child rows that reference it exist.</p>
+
+  <div class="caption-above">Table 5.10 – Foreign Key Constraint Summary</div>
+  <table>
+    <tr><th>Constraint Name</th><th>Child Table.Column</th><th>Parent Table.Column</th></tr>
+    <tr><td>fk_users_customer</td><td>users.customer_id</td><td>customers.customer_id</td></tr>
+    <tr><td>fk_bank_accounts_customer</td><td>bank_accounts.customer_id</td><td>customers.customer_id</td></tr>
+    <tr><td>fk_transactions_customer</td><td>transactions.customer_id</td><td>customers.customer_id</td></tr>
+  </table>
+
+  <p>Note that <code>refresh_tokens.user_id</code> references <code>users.id</code> but the foreign key is implicitly enforced by the unique constraint and application-level delete logic rather than a DDL-level constraint, to allow flexible token revocation without cascading deletes.</p>
+
+  <h3>5.13 BigDecimal Financial Precision</h3>
+  <p>All monetary columns use <code>DECIMAL(19,4)</code> in MySQL, mapped to <code>java.math.BigDecimal</code> in Java with <code>precision=19, scale=4</code> in the JPA <code>@Column</code> annotation. This choice has three important consequences:</p>
+  <ol>
+    <li><strong>No floating-point error:</strong> <code>DECIMAL</code> is an exact numeric type in SQL, unlike <code>FLOAT</code> or <code>DOUBLE</code>. A transfer of ₹100.00 will always result in a balance difference of exactly ₹100.00, never ₹99.99999999 due to IEEE 754 rounding.</li>
+    <li><strong>Four decimal places:</strong> Indian Rupee values require at most two decimal places (paise), but four are retained for compatibility with foreign currency operations and to avoid truncation errors when applying interest rates.</li>
+    <li><strong>Java arithmetic:</strong> All balance arithmetic in the service layer uses <code>BigDecimal.subtract()</code> and <code>BigDecimal.add()</code> rather than primitive long or double arithmetic. The comparison to detect insufficient funds uses <code>currentBalance.compareTo(amount) &lt; 0</code>, which respects BigDecimal's scale.</li>
+  </ol>
+
+  <h3>5.14 Summary of Chapter 5</h3>
+  <p>This chapter has provided a comprehensive specification of all six database tables, including column types, constraints, indexes, and the design rationale behind key decisions. The schema is managed through Flyway versioned migration scripts, ensuring reproducibility across environments. The combination of <code>DECIMAL(19,4)</code> amounts, optimistic locking version columns, composite performance indexes, and soft-delete on customers establishes a database design that is financially correct, performant under concurrent load, and compliant with audit requirements.</p>
+
+  <p>Chapter 6 builds on this foundation by describing how the service layer orchestrates these tables to implement the core banking features: payment processing, atomic fund transfers, idempotency handling, and transaction reversal.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ PAGE 29–30 (Chapter Preview/Transition) -->
+<div class="page">
+  <div class="page-num">29</div>
+
+  <h3>4.9 Aspect-Oriented Logging</h3>
+  <p>A Spring AOP aspect, <code>LoggingAspect</code>, provides cross-cutting method-entry and method-exit logging for all classes in the <code>com.example.pi</code> package. A single <code>@Around</code> pointcut intercepts every public method in the service, repository, and controller layers. The aspect redacts sensitive arguments — specifically those whose parameter names contain the words <code>password</code>, <code>token</code>, or <code>secret</code> — replacing the value with the string <code>[REDACTED]</code> in the log output.</p>
+
+  <p>This prevents accidental logging of credentials while still providing full method tracing. All log lines produced by the aspect carry the MDC <code>correlationId</code> key set by <code>CorrelationIdFilter</code>, enabling end-to-end request tracing across service calls by searching log files for a single UUID.</p>
+
+  <h3>4.10 Observability Architecture</h3>
+  <p>Production observability is implemented through three complementary mechanisms, shown in Figure 4.4:</p>
+
+  <svg width="620" height="200" viewBox="0 0 620 200" font-family="Times New Roman, serif" font-size="9">
+    <defs>
+      <marker id="ob" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+        <polygon points="0 0, 7 3.5, 0 7" fill="#555"/>
+      </marker>
+    </defs>
+    <!-- Application box -->
+    <rect x="10" y="60" width="160" height="80" fill="#e8f4ff" stroke="#000" stroke-width="1.5"/>
+    <text x="90" y="80" text-anchor="middle" font-weight="bold">DigitalBanking App</text>
+    <text x="90" y="96" text-anchor="middle">Micrometer counters</text>
+    <text x="90" y="110" text-anchor="middle">correlation ID filter</text>
+    <text x="90" y="124" text-anchor="middle">logback-spring.xml</text>
+
+    <!-- Prometheus -->
+    <rect x="230" y="20" width="130" height="50" fill="#fff5d9" stroke="#000"/>
+    <text x="295" y="42" text-anchor="middle" font-weight="bold">Prometheus</text>
+    <text x="295" y="58" text-anchor="middle">/actuator/prometheus</text>
+    <line x1="170" y1="75" x2="230" y2="55" stroke="#555" marker-end="url(#ob)"/>
+
+    <!-- Grafana -->
+    <rect x="420" y="20" width="130" height="50" fill="#d9ffe8" stroke="#000"/>
+    <text x="485" y="42" text-anchor="middle" font-weight="bold">Grafana</text>
+    <text x="485" y="58" text-anchor="middle">Transaction dashboards</text>
+    <line x1="360" y1="45" x2="420" y2="45" stroke="#555" marker-end="url(#ob)"/>
+
+    <!-- Log aggregator -->
+    <rect x="230" y="130" width="130" height="50" fill="#ffe8f0" stroke="#000"/>
+    <text x="295" y="151" text-anchor="middle" font-weight="bold">Log Aggregator</text>
+    <text x="295" y="165" text-anchor="middle">(ELK / CloudWatch)</text>
+    <line x1="170" y1="120" x2="230" y2="155" stroke="#555" marker-end="url(#ob)"/>
+
+    <!-- Metrics detail -->
+    <text x="30" y="175" font-size="8">Counters: transaction.success.count | transaction.failure.count | transaction.insufficient_balance.count</text>
+    <text x="30" y="188" font-size="8">Timer: transaction.duration (P50 / P95 / P99 latency)</text>
+  </svg>
+  <div class="caption-below">Figure 4.4 – Observability architecture: Micrometer metrics scrapped by Prometheus, logs aggregated via ELK</div>
+
+  <p>The four Micrometer instruments registered in <code>TransactionServiceImpl</code> are:</p>
+  <ul>
+    <li><code>transaction.success.count</code> — incremented on every successfully committed transaction</li>
+    <li><code>transaction.failure.count</code> — incremented on any exception that aborts a transaction</li>
+    <li><code>transaction.insufficient_balance.count</code> — incremented specifically on <code>InsufficientBalanceException</code> for fraud/anomaly alerting</li>
+    <li><code>transaction.duration</code> — a Micrometer Timer wrapping the full <code>doCreateTransaction</code> method, recording P50/P95/P99 latency percentiles</li>
+  </ul>
+  <p>These metrics are exposed at <code>/actuator/prometheus</code> in Prometheus text format and are secured to require <code>ROLE_ADMIN</code> except for <code>/actuator/health</code> and <code>/actuator/info</code>.</p>
+</div>
+
+<div class="page">
+  <div class="page-num">30</div>
+  <h3>4.11 Chapter Summary</h3>
+  <p>Chapter 4 has presented the complete structural design of the DigitalBanking application: the six-entity JPA data model, the four Java enum types, the service layer interfaces and implementations, the three-filter security chain, the DTO layer, the exception hierarchy, and the observability instrumentation. Chapter 5 has detailed the underlying relational schema that supports this design, with full column specifications, constraint definitions, migration history, and indexing strategy.</p>
+  <p>Together, Chapters 4 and 5 establish a rigorous structural foundation. The following chapter, Chapter 6, describes how these components collaborate at runtime to implement the core banking use cases: payment creation, atomic fund transfers, idempotent retries, and transaction reversal.</p>
+</div>
+
+</body>
+</html>

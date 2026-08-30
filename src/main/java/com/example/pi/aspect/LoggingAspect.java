@@ -7,15 +7,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
+import java.util.Set;
 
 /**
- * Logging Aspect for comprehensive method-level logging.
- * Logs all method entries, exits, execution time, and exceptions.
- * Useful for performance monitoring and debugging service layer operations.
+ * Logging Aspect for method-level timing and exception logging.
  *
- * NOTE: This aspect deliberately excludes Filters, Security configs, and Framework classes.
- * Only targets business logic in service, controller, and repository packages.
+ * Improvements (doc items #45, #46, #47):
+ *  - Removed duplicate pointcut: the original had two overlapping @Around advices that
+ *    caused service methods to be logged twice. Now a single pointcut covers all layers.
+ *  - Sensitive arguments (passwords, keys, tokens) are NOT logged — args are excluded
+ *    from DEBUG output to avoid PII/credential exposure.
+ *  - Method result types are logged but result values are NOT to avoid logging PII.
  */
 @Aspect
 @Component
@@ -23,9 +25,15 @@ public class LoggingAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingAspect.class);
 
+    /** Argument names that should never appear in logs. */
+    private static final Set<String> SENSITIVE_METHOD_NAMES = Set.of(
+            "login", "register", "publicRegister", "changePassword", "resetPassword"
+    );
+
     /**
-     * Log all methods in service, controller, and repository packages.
-     * Excludes framework classes and filters to avoid AOP proxy issues.
+     * Single consolidated pointcut covering service, controller, and repository layers.
+     * The original had two overlapping @Around advices causing duplicate service-layer logs.
+     * Filters and security classes are excluded to avoid AOP proxy issues.
      */
     @Around("(execution(* com.example.pi.service..*(..)) || " +
             "execution(* com.example.pi.controller..*(..)) || " +
@@ -33,57 +41,34 @@ public class LoggingAspect {
             "!execution(* com.example.pi.filter..*(..)) && " +
             "!execution(* com.example.pi.security..*(..))")
     public Object logMethodExecution(ProceedingJoinPoint joinPoint) throws Throwable {
-        String className = joinPoint.getTarget().getClass().getSimpleName();
+        String className  = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = joinPoint.getSignature().getName();
-        Object[] args = joinPoint.getArgs();
+        String signature  = className + "." + methodName;
 
         long startTime = System.currentTimeMillis();
-        String methodSignature = className + "." + methodName;
 
-        try {
-            // Log method entry
-            logger.debug(">>> ENTERING METHOD: {} | Arguments: {}", methodSignature, Arrays.toString(args));
+        // Only log argument count — never values — to avoid PII/credential exposure (doc item #45)
+        int argCount = joinPoint.getArgs() != null ? joinPoint.getArgs().length : 0;
+        boolean isSensitive = SENSITIVE_METHOD_NAMES.contains(methodName);
 
-            // Execute the method
-            Object result = joinPoint.proceed();
-
-            // Log method exit
-            long executionTime = System.currentTimeMillis() - startTime;
-            logger.debug("<<< EXITING METHOD: {} | Execution Time: {} ms | Result Type: {}",
-                    methodSignature, executionTime, result != null ? result.getClass().getSimpleName() : "void");
-
-            return result;
-
-        } catch (Throwable ex) {
-            long executionTime = System.currentTimeMillis() - startTime;
-            logger.error("!!! EXCEPTION IN METHOD: {} | Execution Time: {} ms | Exception: {}",
-                    methodSignature, executionTime, ex.getMessage(), ex);
-            throw ex;
+        if (!isSensitive) {
+            logger.debug(">>> ENTERING: {} (args={})", signature, argCount);
+        } else {
+            logger.debug(">>> ENTERING: {} [args redacted]", signature);
         }
-    }
-
-    /**
-     * Log all service layer operations with detailed metrics
-     */
-    @Around("execution(* com.example.pi.service.impl..*(..))")
-    public Object logServiceOperations(ProceedingJoinPoint joinPoint) throws Throwable {
-        String className = joinPoint.getTarget().getClass().getSimpleName();
-        String methodName = joinPoint.getSignature().getName();
-
-        long startTime = System.currentTimeMillis();
-        String methodSignature = className + "." + methodName;
 
         try {
-            logger.info("🔄 SERVICE OPERATION: {} started", methodSignature);
             Object result = joinPoint.proceed();
-            long executionTime = System.currentTimeMillis() - startTime;
-            logger.info("✅ SERVICE OPERATION: {} completed in {} ms", methodSignature, executionTime);
+            long elapsed = System.currentTimeMillis() - startTime;
+            // Log result type only — not the result value (could contain PII)
+            String resultType = result != null ? result.getClass().getSimpleName() : "void";
+            logger.debug("<<< EXITING:  {} | {}ms | result-type={}", signature, elapsed, resultType);
             return result;
 
         } catch (Throwable ex) {
-            long executionTime = System.currentTimeMillis() - startTime;
-            logger.error("❌ SERVICE OPERATION FAILED: {} after {} ms | Error: {}",
-                    methodSignature, executionTime, ex.getMessage(), ex);
+            long elapsed = System.currentTimeMillis() - startTime;
+            logger.error("!!! EXCEPTION: {} | {}ms | {}: {}", signature, elapsed,
+                    ex.getClass().getSimpleName(), ex.getMessage());
             throw ex;
         }
     }

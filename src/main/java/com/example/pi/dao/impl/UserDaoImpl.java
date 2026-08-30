@@ -1,74 +1,105 @@
 package com.example.pi.dao.impl;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import org.springframework.data.domain.Pageable;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.stereotype.Repository;
+import java.util.stream.Collectors;
 
 import com.example.pi.dao.UserDao;
-import com.example.pi.dao.support.NameParametersJdbcDaoSupportClass;
 import com.example.pi.dto.response.PaginationResponse;
 import com.example.pi.dto.response.UserDepartmentResponse;
+import com.example.pi.entity.Customers;
+import com.example.pi.entity.Transactions;
+import com.example.pi.repository.CustomerRepository;
+import com.example.pi.repository.TransactionsRepository;
 import com.example.pi.util.PaginationUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Replacement for the legacy JDBC DAO (doc item #17).
+ *
+ * Original used raw JDBC + BeanPropertyRowMapper via NamedParameterJdbcDaoSupport.
+ * This implementation uses JPA repositories — no raw SQL, no SELECT *, no silent exception swallowing.
+ *
+ * The old JDBC queries joined customers and transactions.  We replicate the same data
+ * by loading both via JPA and projecting into UserDepartmentResponse.
+ */
 @Repository
-public class UserDaoImpl extends NameParametersJdbcDaoSupportClass implements UserDao {
+@Deprecated  // Entire DAO layer is being replaced — see AllTransactionsHistory endpoint
+public class UserDaoImpl implements UserDao {
 
-	@Override
-	public PaginationResponse<UserDepartmentResponse> getUserDepartment(Pageable pageable) {
-		try {
-			int offset = PaginationUtil.calculateOffset(pageable.getPageNumber(), pageable.getPageSize());
-			long totalElements = getTotalTransactionCount();
+    private final TransactionsRepository transactionsRepository;
+    private final CustomerRepository     customerRepository;
 
-			String query = buildPaginatedQuery(
-					"SELECT CUSTOMER_NAME, ACCOUNT_NUMBER, transaction_mode, transaction_id, transaction_amount, transaction_to, transaction_date "
-							+ "FROM customers c JOIN transactions t ON c.CUSTOMER_ID = t.customer_id",
-					pageable.getPageSize(), offset);
+    public UserDaoImpl(TransactionsRepository transactionsRepository,
+                        CustomerRepository customerRepository) {
+        this.transactionsRepository = transactionsRepository;
+        this.customerRepository     = customerRepository;
+    }
 
-			List<UserDepartmentResponse> transactions = getNamedParameterJdbcTemplate().getJdbcOperations()
-					.query(query, new Object[] { pageable.getPageSize(), offset },
-							new BeanPropertyRowMapper<>(UserDepartmentResponse.class));
+    @Override
+    @Transactional(readOnly = true)
+    public PaginationResponse<UserDepartmentResponse> getUserDepartment(Pageable pageable) {
+        return buildJoinedResponse(pageable, Sort.by("transactionDate"));
+    }
 
-			return PaginationUtil.buildPaginationResponse(transactions, pageable, totalElements);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			return PaginationUtil.emptyResponse();
-		}
-	}
+    @Override
+    @Transactional(readOnly = true)
+    public PaginationResponse<UserDepartmentResponse> getLatestTransactions(Pageable pageable) {
+        return buildJoinedResponse(pageable, Sort.by(Sort.Direction.DESC, "transactionDate"));
+    }
 
-	@Override
-	public PaginationResponse<UserDepartmentResponse> getLatestTransactions(Pageable pageable) {
-		try {
-			int offset = PaginationUtil.calculateOffset(pageable.getPageNumber(), pageable.getPageSize());
-			long totalElements = getTotalTransactionCount();
+    // ── Helpers ────────────────────────────────────────────────────────────────
 
-			String query = buildPaginatedQuery(
-					"SELECT CUSTOMER_NAME, ACCOUNT_NUMBER, transaction_mode, transaction_id, transaction_amount, transaction_to, transaction_date "
-							+ "FROM customers c JOIN transactions t ON c.CUSTOMER_ID = t.customer_id "
-							+ "ORDER BY t.transaction_date DESC",
-					pageable.getPageSize(), offset);
+    private PaginationResponse<UserDepartmentResponse> buildJoinedResponse(Pageable pageable, Sort sort) {
+        Pageable sorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
-			List<UserDepartmentResponse> transactions = getNamedParameterJdbcTemplate().getJdbcOperations()
-					.query(query, new Object[] { pageable.getPageSize(), offset },
-							new BeanPropertyRowMapper<>(UserDepartmentResponse.class));
+        Page<Transactions> txPage = transactionsRepository.findAll(sorted);
 
-			return PaginationUtil.buildPaginationResponse(transactions, pageable, totalElements);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			return PaginationUtil.emptyResponse();
-		}
-	}
+        // Load all customers referenced by the transactions into a lookup map
+        List<Integer> customerIds = txPage.getContent().stream()
+                .map(Transactions::getCustomerId)
+                .distinct()
+                .collect(Collectors.toList());
 
-	private String buildPaginatedQuery(String baseQuery, int pageSize, int offset) {
-		return baseQuery + " LIMIT ? OFFSET ?";
-	}
+        Map<Integer, Customers> customerMap = new HashMap<>();
+        customerRepository.findAllById(customerIds)
+                .forEach(c -> customerMap.put(c.getCustomerId(), c));
 
-	private long getTotalTransactionCount() {
-		String countQuery = "SELECT COUNT(*) FROM customers c JOIN transactions t ON c.CUSTOMER_ID = t.customer_id";
-		Integer total = getNamedParameterJdbcTemplate().getJdbcOperations()
-				.queryForObject(countQuery, Integer.class);
-		return total != null ? total : 0;
-	}
+        List<UserDepartmentResponse> items = txPage.getContent().stream()
+                .map(tx -> toResponse(tx, customerMap.get(tx.getCustomerId())))
+                .collect(Collectors.toList());
+
+        long total = txPage.getTotalElements();
+        return PaginationUtil.buildPaginationResponse(items, pageable, total);
+    }
+
+    private UserDepartmentResponse toResponse(Transactions tx, Customers customer) {
+        UserDepartmentResponse r = new UserDepartmentResponse();
+        r.setTransaction_id(tx.getTransactionId());
+        r.setTransaction_type(tx.getTransaction_type());
+        r.setTransaction_mode(tx.getTransaction_mode());
+        r.setTransaction_to(tx.getTransactionTo());
+        r.setTransaction_date(tx.getTransaction_date());
+        r.setTransaction_amount(tx.getTransactionAmount() != null
+                ? tx.getTransactionAmount().intValue() : 0);
+        r.setAvailable_balance(tx.getAvailableBalance() != null
+                ? tx.getAvailableBalance().intValue() : 0);
+        r.setIntial_deposit(tx.getInitialDeposit() != null
+                ? tx.getInitialDeposit().intValue() : 0);
+        r.setCustomer_id(tx.getCustomerId() != null ? tx.getCustomerId() : 0);
+        r.setSerial_number(tx.getSerial_number());
+
+        if (customer != null) {
+            r.setCUSTOMER_NAME(customer.getName());
+            r.setACCOUNT_NUMBER(customer.getAccountNumber());
+        }
+        return r;
+    }
 }

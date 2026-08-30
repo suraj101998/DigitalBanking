@@ -1,163 +1,156 @@
 package com.example.pi.entity;
 
-import java.sql.Date;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.example.pi.entity.enums.AccountStatus;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 
-@Entity(name = "customers")
-@Table(name = "customers")
+/**
+ * Customer entity.
+ * Field names follow standard Java camelCase (doc item #31).
+ * Unique constraints enforced at DB level (doc item #13).
+ */
+@Entity
+@Table(
+    name = "customers",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_customers_email",           columnNames = "email"),
+        @UniqueConstraint(name = "uk_customers_identity_number", columnNames = "identity_number")
+    }
+)
 public class Customers {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "CUSTOMER_ID")
-	private int Customer_Id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "customer_id")
+    private Integer customerId;
 
-	@Column(name = "CUSTOMER_NAME")
-	private String name;
+    @NotBlank
+    @Size(max = 100)
+    @Column(name = "customer_name", nullable = false, length = 100)
+    private String name;
 
-	@Column(name = "ACCOUNT_NUMBER")
-	private long account;
+    /**
+     * Still stored for backward compatibility with the legacy schema.
+     * The authoritative balance lives in BankAccount.balance.
+     */
+    @Column(name = "account_number", length = 20)
+    private String accountNumber;
 
-	@Column(name = "IDENTITY_TYPE")
-	private String id_type;
+    @Column(name = "identity_type", length = 30)
+    private String idType;
 
-	@Column(name = "IDENTITY_NUMBER")
-	private String id_num;
+    @Column(name = "identity_number", length = 50)
+    private String idNum;
 
-	@Column(name = "DATE_OF_BIRTH")
-	private Date dob;
+    @Column(name = "date_of_birth")
+    private LocalDate dob;
 
-	@Column(name = "MOBILE_NUMBER")
-	private long phone;
+    @Pattern(regexp = "\\d{10}")
+    @Column(name = "mobile_number", length = 15)
+    private String phone;
 
-	@Column(name = "EMAIL_ID")
-	private String email;
+    @Email
+    @Size(max = 150)
+    @Column(name = "email", length = 150)
+    private String email;
 
-	@Column(name = "ADDRESS")
-	private String address;
+    @Size(max = 300)
+    @Column(name = "address", length = 300)
+    private String address;
 
-	@Column(name = "SEX")
-	private String sex;
+    @Column(name = "sex", length = 10)
+    private String sex;
 
-	@Column(name = "USER_ID")
-	private Integer userId;
+    @Column(name = "user_id")
+    private Integer userId;
 
-	public int getCustomer_Id() {
-		return Customer_Id;
-	}
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status", length = 20)
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
 
-	public void setCustomer_Id(int customer_Id) {
-		Customer_Id = customer_Id;
-	}
+    /**
+     * Soft-delete flag (doc item #76).
+     * Physical deletion is never performed on customer records.
+     * Use this flag to logically remove a customer while retaining financial history.
+     */
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted = false;
 
-	public String getName() {
-		return name;
-	}
+    @Column(name = "deleted_at")
+    private java.time.Instant deletedAt;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public Customers() {
+    }
 
-	public long getAccount() {
-		return account;
-	}
+    // ── Getters & Setters ──────────────────────────────────────────────────────
 
-	public void setAccount(long account) {
-		this.account = account;
-	}
+    public Integer getCustomerId() { return customerId; }
+    public void setCustomerId(Integer customerId) { this.customerId = customerId; }
 
-	public String getId_type() {
-		return id_type;
-	}
+    /** Kept for code that still calls getCustomer_Id() — delegates to the corrected getter. */
+    public Integer getCustomer_Id() { return customerId; }
+    public void setCustomer_Id(Integer customer_Id) { this.customerId = customer_Id; }
 
-	public void setId_type(String id_type) {
-		this.id_type = id_type;
-	}
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-	public String getId_num() {
-		return id_num;
-	}
+    public String getAccountNumber() { return accountNumber; }
+    public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
 
-	public void setId_num(String id_num) {
-		this.id_num = id_num;
-	}
+    /** Backward-compat accessor used by legacy code that treats accountNumber as a long. */
+    public long getAccount() {
+        try { return accountNumber != null ? Long.parseLong(accountNumber) : 0L; } catch (NumberFormatException e) { return 0L; }
+    }
+    public void setAccount(long account) { this.accountNumber = String.valueOf(account); }
 
-	public Date getDob() {
-		return dob;
-	}
+    public String getIdType() { return idType; }
+    public void setIdType(String idType) { this.idType = idType; }
 
-	public void setDob(Date dob) {
-		this.dob = dob;
-	}
+    public String getId_type() { return idType; }
+    public void setId_type(String id_type) { this.idType = id_type; }
 
-	public long getPhone() {
-		return phone;
-	}
+    public String getIdNum() { return idNum; }
+    public void setIdNum(String idNum) { this.idNum = idNum; }
 
-	public void setPhone(long phone) {
-		this.phone = phone;
-	}
+    public String getId_num() { return idNum; }
+    public void setId_num(String id_num) { this.idNum = id_num; }
 
-	public String getEmail() {
-		return email;
-	}
+    public LocalDate getDob() { return dob; }
+    public void setDob(LocalDate dob) { this.dob = dob; }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-	public String getAddress() {
-		return address;
-	}
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-	public void setAddress(String address) {
-		this.address = address;
-	}
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-	public String getSex() {
-		return sex;
-	}
+    public String getSex() { return sex; }
+    public void setSex(String sex) { this.sex = sex; }
 
-	public void setSex(String sex) {
-		this.sex = sex;
-	}
+    public Integer getUserId() { return userId; }
+    public void setUserId(Integer userId) { this.userId = userId; }
 
-	public Integer getUserId() {
-		return userId;
-	}
+    public AccountStatus getAccountStatus() { return accountStatus; }
+    public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
 
-	public void setUserId(Integer userId) {
-		this.userId = userId;
-	}
+    public boolean isDeleted() { return deleted; }
+    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 
-	public Customers(int customer_Id, String name, long account, String id_type, String id_num, Date dob, long phone,
-			String email, String address, String sex) {
-		super();
-		Customer_Id = customer_Id;
-		this.name = name;
-		this.account = account;
-		this.id_type = id_type;
-		this.id_num = id_num;
-		this.dob = dob;
-		this.phone = phone;
-		this.email = email;
-		this.address = address;
-		this.sex = sex;
-	}
+    public java.time.Instant getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(java.time.Instant deletedAt) { this.deletedAt = deletedAt; }
 
-	public Customers() {
-		super();
-	}
-
-	@Override
-	public String toString() {
-		return "Customers [Customer_Id=" + Customer_Id + ", name=" + name + ", account=" + account + ", id_type="
-				+ id_type + ", id_num=" + id_num + ", dob=" + dob + ", phone=" + phone + ", email=" + email
-				+ ", address=" + address + ", sex=" + sex + "]";
-	}
+    @Override
+    public String toString() {
+        return "Customers{customerId=" + customerId +
+               ", name='" + name + '\'' +
+               ", email='" + email + '\'' +
+               ", accountStatus=" + accountStatus + '}';
+    }
 }
