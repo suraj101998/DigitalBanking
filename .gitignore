@@ -39,3 +39,7 @@ out/
 target/
 logs/
 tomcat/
+
+target/
+logs/
+tomcat/
