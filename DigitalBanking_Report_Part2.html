@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigitalBanking – Project Report | Part 2 of 5</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.8; color: #000; background: #e8e8e8; }
+.page { width: 210mm; min-height: 297mm; margin: 20px auto; padding: 25.4mm 31.75mm 25.4mm 31.75mm; background: #fff; box-shadow: 0 3px 16px rgba(0,0,0,0.18); position: relative; page-break-after: always; }
+@media print { body { background:#fff; } .page { box-shadow:none; margin:0; } }
+h1.ch { font-size:16pt; font-weight:700; text-align:center; text-transform:uppercase; letter-spacing:1pt; border-bottom:2pt solid #000; padding-bottom:8pt; margin:0 0 20pt 0; }
+h2.sec { font-size:14pt; font-weight:700; text-align:left; margin:18pt 0 8pt 0; }
+h3.sub { font-size:12pt; font-weight:700; margin:12pt 0 5pt 0; text-decoration:underline; }
+p { text-align:justify; margin-bottom:9pt; font-size:12pt; line-height:1.8; }
+p.ctr { text-align:center; }
+.tcap { font-size:11pt; font-weight:700; margin:14pt 0 4pt 0; }
+table.rep { width:100%; border-collapse:collapse; margin-bottom:12pt; font-size:10.5pt; }
+table.rep th { background:#1c2e4a; color:#fff; padding:7pt 8pt; border:1pt solid #000; text-align:left; font-weight:700; }
+table.rep td { padding:6pt 8pt; border:1pt solid #444; vertical-align:top; line-height:1.6; }
+table.rep tr:nth-child(even) td { background:#f4f6f9; }
+.diag { background:#f4f7fb; border:1pt solid #b0c4de; border-radius:4pt; padding:14pt; margin:14pt 0; font-family:"Courier New",monospace; font-size:9pt; line-height:1.55; white-space:pre; overflow-x:auto; }
+.fcap { font-size:11pt; font-style:italic; text-align:center; margin-top:6pt; margin-bottom:12pt; }
+.pgnum { position:absolute; bottom:14mm; right:31.75mm; font-size:10pt; color:#555; }
+ul, ol { margin:8pt 0 10pt 22pt; }
+li { margin-bottom:4pt; line-height:1.7; }
+.callout { border-left:4pt solid #1c2e4a; background:#f0f4ff; padding:9pt 12pt; margin:12pt 0; font-size:11pt; }
+</style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════════╗
+     ║  PAGE 11 – FUNCTIONAL REQUIREMENTS (1)  ║
+     ╚══════════════════════════════════════════╝ -->
+<div class="page">
+  <h1 class="ch">Chapter 3 &nbsp;–&nbsp; Requirement Gathering</h1>
+
+  <p>This chapter documents the complete set of requirements gathered for the DigitalBanking application through a structured analysis of the problem domain. The requirements are organized into Functional Requirements (what the system must do), Non-Functional Requirements (how well it must do it), User Roles and Use Cases (who interacts with the system and how), and the complete API Feature Set (the precise contract exposed to clients). This analysis preceded all design and implementation activities and directly shaped the architecture of the application.</p>
+
+  <h2 class="sec">3.1 Functional Requirements</h2>
+
+  <p>Functional requirements define the specific behaviors and operations the system must support. For a banking backend, these requirements are derived from the core business processes: account management, financial transactions, authentication, and system administration. Each requirement was assigned a priority level — <em>Mandatory</em> (must be delivered in this project), <em>Important</em> (high value, strongly desired), or <em>Optional</em> (desirable but not blocking).</p>
+
+  <p class="tcap">Table 3.01: Functional Requirements</p>
+  <table class="rep">
+    <tr>
+      <th style="width:50pt;">Req. ID</th>
+      <th>Requirement Description</th>
+      <th style="width:80pt;">Category</th>
+      <th style="width:80pt;">Priority</th>
+    </tr>
+    <tr>
+      <td>FR-01</td>
+      <td>The system shall allow a new user to self-register with a username and password via a public endpoint. The password shall be stored using BCrypt hashing and never in plaintext.</td>
+      <td>Authentication</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-02</td>
+      <td>The system shall authenticate users via a login endpoint and return a signed JWT access token (1-hour expiry) and a refresh token (7-day expiry) upon successful authentication.</td>
+      <td>Authentication</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-03</td>
+      <td>The system shall support token refresh: given a valid, non-expired refresh token, a new JWT access token and a new (rotated) refresh token shall be issued.</td>
+      <td>Authentication</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-04</td>
+      <td>The system shall support logout by revoking the user's active refresh token, rendering future refresh attempts invalid without requiring a new login.</td>
+      <td>Authentication</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-05</td>
+      <td>After 5 consecutive failed login attempts for the same username, the account shall be locked for 15 minutes. Subsequent login attempts during the lock period shall return HTTP 429 with a descriptive message.</td>
+      <td>Authentication</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-06</td>
+      <td>An administrator shall be able to create, read, update, and soft-delete customer records. Soft deletion shall set <code>is_deleted = true</code> and record a <code>deleted_at</code> timestamp without physically removing the row.</td>
+      <td>Customer Mgmt</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-07</td>
+      <td>Each customer shall be linked to exactly one bank account record containing a BigDecimal balance, account number, currency (default: INR), and account status (ACTIVE / BLOCKED / FROZEN / CLOSED / DORMANT).</td>
+      <td>Account Mgmt</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-08</td>
+      <td>The system shall support credit (deposit) and debit (withdrawal) transactions. A debit shall fail with HTTP 422 if the account balance is insufficient. All amounts shall be stored with 4 decimal places of precision.</td>
+      <td>Transactions</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-09</td>
+      <td>Any credit or debit transaction request may carry an <code>Idempotency-Key</code> HTTP header. If a request with the same key is submitted more than once, the original response shall be replayed without creating a duplicate transaction.</td>
+      <td>Transactions</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-10</td>
+      <td>The system shall reject any single transaction exceeding ₹5,00,000. A daily cumulative limit of ₹10,00,000 and a monthly limit of ₹50,00,000 shall also be enforced per customer.</td>
+      <td>Transactions</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-11</td>
+      <td>The system shall support atomic fund transfers between two distinct bank accounts. The source account shall be debited and the destination account credited in a single ACID transaction. If either operation fails, both shall be rolled back.</td>
+      <td>Transfers</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-12</td>
+      <td>The transfer service shall prevent deadlocks by acquiring database row locks in ascending account-ID order when both accounts are involved in the same transfer, regardless of which is the source or destination.</td>
+      <td>Transfers</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-13</td>
+      <td>Every committed transaction shall be recorded as an immutable ledger entry with: transaction ID, type (CREDIT/DEBIT), mode (UPI/NEFT/RTGS/IMPS/CASH/CHEQUE/ONLINE), status, amount, balance-before, balance-after, customer ID, and timestamp (Instant precision).</td>
+      <td>Transactions</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-14</td>
+      <td>An administrator shall be able to reverse a committed transaction by submitting a POST request to <code>/api/v1/transactions/{id}/reverse</code>. The reversal shall create a new offsetting transaction rather than modifying the original record.</td>
+      <td>Transactions</td>
+      <td>Important</td>
+    </tr>
+    <tr>
+      <td>FR-15</td>
+      <td>Transaction history for a customer shall be paginated and filterable by transaction mode (UPI, NEFT, etc.).</td>
+      <td>Transactions</td>
+      <td>Important</td>
+    </tr>
+    <tr>
+      <td>FR-16</td>
+      <td>The current balance of a customer's account shall be retrievable at any time via <code>GET /api/v1/customers/{id}/balance</code>. The balance response shall include currency and account status.</td>
+      <td>Account Mgmt</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-17</td>
+      <td>The system shall rate-limit all <code>/api/*</code> endpoints to 100 requests per minute per IP address using a token-bucket algorithm. Requests exceeding the limit shall receive HTTP 429.</td>
+      <td>Security</td>
+      <td>Mandatory</td>
+    </tr>
+    <tr>
+      <td>FR-18</td>
+      <td>An admin-only registration endpoint shall allow administrators to create user accounts with assigned roles and optionally link them to a customer record in a single operation.</td>
+      <td>Authentication</td>
+      <td>Important</td>
+    </tr>
+  </table>
+
+  <div class="pgnum">11</div>
+</div>
+
+
+<!-- ╔═══════════════════════════════════════════════╗
+     ║  PAGE 12 – NON-FUNCTIONAL REQUIREMENTS       ║
+     ╚═══════════════════════════════════════════════╝ -->
+<div class="page">
+  <h2 class="sec">3.2 Non-Functional Requirements</h2>
+
+  <p>Non-functional requirements define the quality attributes of the system — the constraints under which it must operate rather than specific behaviors it must exhibit. For a banking system, these are at least as important as the functional requirements, because correctness under load, security under attack, and auditability under scrutiny are non-negotiable properties.</p>
+
+  <p class="tcap">Table 3.02: Non-Functional Requirements</p>
+  <table class="rep">
+    <tr>
+      <th style="width:50pt;">Req. ID</th>
+      <th>Requirement Description</th>
+      <th style="width:90pt;">Category</th>
+    </tr>
+    <tr>
+      <td>NFR-01</td>
+      <td><strong>Correctness:</strong> All monetary arithmetic must use BigDecimal with a minimum precision of DECIMAL(19,4). The system must never derive an account balance from summing or ordering transaction history. Balance is a first-class, directly persisted state in the bank_accounts table.</td>
+      <td>Data Integrity</td>
+    </tr>
+    <tr>
+      <td>NFR-02</td>
+      <td><strong>Concurrency Safety:</strong> Concurrent debit operations on the same account must serialize correctly. The system must guarantee that an account balance can never go below zero due to two simultaneous debit requests, even under high concurrency.</td>
+      <td>Concurrency</td>
+    </tr>
+    <tr>
+      <td>NFR-03</td>
+      <td><strong>ACID Compliance:</strong> Every transaction that modifies an account balance (credit, debit, or transfer) must execute within a database transaction boundary. Either all changes commit or all roll back. Partial state must never be persisted.</td>
+      <td>Data Integrity</td>
+    </tr>
+    <tr>
+      <td>NFR-04</td>
+      <td><strong>Security — Authentication:</strong> All sensitive endpoints must require a valid JWT access token in the Authorization header. The JWT must include issuer, audience, expiry, and roles claims. Passwords must never appear in logs, responses, or configuration files in plaintext.</td>
+      <td>Security</td>
+    </tr>
+    <tr>
+      <td>NFR-05</td>
+      <td><strong>Security — Authorization:</strong> Role-based access control must be enforced at the HTTP layer. Admin-only operations (customer creation, transaction reversal, user registration) must return HTTP 403 when attempted by a USER-role principal.</td>
+      <td>Security</td>
+    </tr>
+    <tr>
+      <td>NFR-06</td>
+      <td><strong>Secret Management:</strong> The JWT signing secret, database credentials, and all sensitive configuration values must be sourced from environment variables and must not be hard-coded in any file committed to source control.</td>
+      <td>Security</td>
+    </tr>
+    <tr>
+      <td>NFR-07</td>
+      <td><strong>Auditability:</strong> Every incoming HTTP request must be assigned a unique Correlation ID (X-Correlation-Id header). This ID must be present in every log line generated during the request's lifetime and returned to the client in the response header for end-to-end traceability.</td>
+      <td>Observability</td>
+    </tr>
+    <tr>
+      <td>NFR-08</td>
+      <td><strong>Observability — Metrics:</strong> The application must expose Micrometer counters for transaction.success.count, transaction.failure.count, transaction.insufficient_balance.count, and a transaction.duration timer. These must be accessible at the /actuator/prometheus endpoint.</td>
+      <td>Observability</td>
+    </tr>
+    <tr>
+      <td>NFR-09</td>
+      <td><strong>Database Schema Management:</strong> The database schema must be managed exclusively through Flyway version-controlled migration scripts. Hibernate ddl-auto must be set to validate in production — never to update or create-drop. Schema changes must be traceable through Git history.</td>
+      <td>Maintainability</td>
+    </tr>
+    <tr>
+      <td>NFR-10</td>
+      <td><strong>Connection Pool:</strong> The application must use HikariCP with a maximum pool size of 20 connections, minimum idle of 5, a connection timeout of 30 seconds, and an idle timeout of 10 minutes to prevent connection leaks in production.</td>
+      <td>Performance</td>
+    </tr>
+    <tr>
+      <td>NFR-11</td>
+      <td><strong>API Response Consistency:</strong> All error responses must follow a standard JSON structure containing: timestamp, HTTP status code, error code, human-readable message, request path, and traceId (from MDC). This eliminates client-side guesswork about error formats.</td>
+      <td>API Design</td>
+    </tr>
+    <tr>
+      <td>NFR-12</td>
+      <td><strong>Testability:</strong> The service layer must be independently unit-testable without a live database. Repository code must be verifiable using @DataJpaTest with H2. Full-stack integration must be verifiable against a real MySQL instance using Testcontainers.</td>
+      <td>Testability</td>
+    </tr>
+    <tr>
+      <td>NFR-13</td>
+      <td><strong>Immutability of Financial Records:</strong> Once a transaction record is committed to the ledger, its amount, type, account, and customer_id must never be modified. Corrections must take the form of reversal transactions, maintaining a complete and tamper-evident audit trail.</td>
+      <td>Data Integrity</td>
+    </tr>
+    <tr>
+      <td>NFR-14</td>
+      <td><strong>Response Codes:</strong> The API must use semantically correct HTTP status codes: 200 OK, 201 CREATED, 204 NO CONTENT, 400 BAD REQUEST (validation), 401 UNAUTHORIZED, 403 FORBIDDEN, 404 NOT FOUND, 409 CONFLICT (duplicate), 422 UNPROCESSABLE ENTITY (insufficient balance), 429 TOO MANY REQUESTS (rate limit/lockout).</td>
+      <td>API Design</td>
+    </tr>
+  </table>
+
+  <div class="pgnum">12 – 13</div>
+</div>
+
+
+<!-- ╔═══════════════════════════════════════════════╗
+     ║  PAGE 13 – USER ROLES & USE CASES            ║
+     ╚═══════════════════════════════════════════════╝ -->
+<div class="page">
+  <h2 class="sec">3.3 User Roles and Use Cases</h2>
+
+  <p>The DigitalBanking application serves two distinct user roles, each with a different set of permitted operations. The role model is enforced at the HTTP security layer through Spring Security's <code>@EnableMethodSecurity</code> and URL pattern matching rules. A third implicit actor — the <em>System</em> — represents automated background processes such as token expiry and rate-limit counter reset.</p>
+
+  <p class="tcap">Table 3.03: User Roles and Permission Matrix</p>
+  <table class="rep">
+    <tr>
+      <th style="width:110pt;">Role</th>
+      <th>Permissions</th>
+      <th style="width:120pt;">Spring Security Role</th>
+    </tr>
+    <tr>
+      <td><strong>ADMIN</strong></td>
+      <td>Full access to all endpoints. Can create, read, update, and soft-delete customers. Can register new users. Can reverse committed transactions. Can view all transaction history across all customers. Has access to Actuator management endpoints (metrics, prometheus).</td>
+      <td><code>ROLE_ADMIN</code></td>
+    </tr>
+    <tr>
+      <td><strong>USER</strong></td>
+      <td>Can view their own account balance and transaction history. Can initiate credit/debit payments on their own account. Can initiate fund transfers. Can refresh their JWT token. Can log out. Cannot access other customers' data or admin-only endpoints.</td>
+      <td><code>ROLE_USER</code></td>
+    </tr>
+    <tr>
+      <td><strong>Anonymous</strong></td>
+      <td>Can access the login endpoint, public-register endpoint, and token refresh endpoint only. All other endpoints return HTTP 401.</td>
+      <td>No role (unauthenticated)</td>
+    </tr>
+  </table>
+
+  <h3 class="sub">Use Case Diagram — Admin Role</h3>
+
+  <div class="diag">
+┌──────────────────────────────────────────────────────────────────┐
+│                      DigitalBanking System                       │
+│                                                                  │
+│   ┌────────────────────────────────────────────────────────┐     │
+│   │  Admin Use Cases                                       │     │
+│   │                                                        │     │
+│   │  UC-A01: Register a new user account                   │     │
+│   │  UC-A02: Create / update / soft-delete a customer      │     │
+│   │  UC-A03: View all customers with pagination            │     │
+│   │  UC-A04: Filter customers by identity document type    │     │
+│   │  UC-A05: View all transaction history (any customer)   │     │
+│   │  UC-A06: Reverse a committed transaction               │     │
+│   │  UC-A07: View application metrics via Actuator         │     │
+│   │  UC-A08: Login and receive JWT + refresh token         │     │
+│   │  UC-A09: Logout (revoke refresh token)                 │     │
+│   └────────────────────────────────────────────────────────┘     │
+│                                       │ inherits ↓               │
+│   ┌────────────────────────────────────────────────────────┐     │
+│   │  Also performs all USER Use Cases (UC-U01 to UC-U08)   │     │
+│   └────────────────────────────────────────────────────────┘     │
+│                                                                   │
+│    ╔══════╗                                                       │
+│    ║ADMIN ║ ─────────────────────────────────────────────────► All above
+│    ╚══════╝                                                       │
+└──────────────────────────────────────────────────────────────────┘
+  </div>
+  <p class="fcap">Figure 3.1: Use Case Diagram — Admin Role</p>
+
+  <h3 class="sub">Use Case Diagram — Regular User Role</h3>
+
+  <div class="diag">
+┌──────────────────────────────────────────────────────────────────┐
+│                      DigitalBanking System                       │
+│                                                                  │
+│   ┌────────────────────────────────────────────────────────┐     │
+│   │  User Use Cases                                        │     │
+│   │                                                        │     │
+│   │  UC-U01: Self-register (public-register endpoint)      │     │
+│   │  UC-U02: Login — receive JWT access + refresh tokens   │     │
+│   │  UC-U03: Refresh JWT access token using refresh token  │     │
+│   │  UC-U04: Logout — revoke refresh token                 │     │
+│   │  UC-U05: View own account balance                      │     │
+│   │  UC-U06: View own transaction history (paginated)      │     │
+│   │  UC-U07: View own transactions filtered by mode        │     │
+│   │  UC-U08: Make a payment (CREDIT or DEBIT) on own acct  │     │
+│   │  UC-U09: Initiate an atomic fund transfer              │     │
+│   └────────────────────────────────────────────────────────┘     │
+│                                                                   │
+│    ╔══════╗                                                       │
+│    ║ USER ║ ─────────────────────────────────────────────────► Above
+│    ╚══════╝                                                       │
+│                                                                   │
+│    NOTE: USER cannot access another customer's balance or        │
+│    transactions. Customer ID ownership is validated via JWT.     │
+└──────────────────────────────────────────────────────────────────┘
+  </div>
+  <p class="fcap">Figure 3.2: Use Case Diagram — Regular User Role</p>
+
+  <div class="pgnum">14 – 15</div>
+</div>
+
+
+<!-- ╔════════════════════════════════════╗
+     ║  PAGE 14 – API FEATURE SET (1)    ║
+     ╚════════════════════════════════════╝ -->
+<div class="page">
+  <h2 class="sec">3.4 API Feature Set</h2>
+
+  <p>The DigitalBanking API follows RESTful design principles with consistent versioning under the <code>/api/v1/</code> path prefix. All endpoints return JSON. Request bodies that contain domain-specific inputs require a <code>Content-Type: application/json</code> header. Protected endpoints require an <code>Authorization: Bearer &lt;JWT&gt;</code> header. The following tables document the complete feature set grouped by controller.</p>
+
+  <p class="tcap">Table 3.04: Authentication API Feature Set</p>
+  <table class="rep">
+    <tr>
+      <th style="width:60pt;">Method</th>
+      <th>Endpoint</th>
+      <th>Request Body / Parameters</th>
+      <th style="width:70pt;">Auth Required</th>
+      <th style="width:60pt;">HTTP Response</th>
+      <th>Purpose</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/v1/auth/login</code></td>
+      <td><code>LoginRequest</code>: <em>userName</em> (NotBlank), <em>password</em> (NotBlank, Size 8–64)</td>
+      <td>None (Public)</td>
+      <td>200 / 401 / 429</td>
+      <td>Authenticates user. Returns JWT access token, refresh token, userName, roles, customerId. Returns 429 if account is locked.</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/v1/auth/public-register</code></td>
+      <td><code>LoginRequest</code>: userName, password</td>
+      <td>None (Public)</td>
+      <td>201 / 409</td>
+      <td>Self-registration with ROLE_USER. Returns 409 if username already exists.</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/v1/auth/refresh</code></td>
+      <td>JSON body: <code>{ "refreshToken": "…" }</code></td>
+      <td>None (Public)</td>
+      <td>200 / 400 / 422</td>
+      <td>Exchanges a valid refresh token for a new access + refresh token pair (token rotation). Original refresh token is invalidated.</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/v1/auth/logout</code></td>
+      <td>None</td>
+      <td>Any JWT</td>
+      <td>200 / 401</td>
+      <td>Revokes the caller's refresh token. Subsequent refresh attempts are rejected until user logs in again.</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/v1/auth/register</code></td>
+      <td><code>UserRegisterRequest</code>: userName, password (Pattern: uppercase + digit + special char + min 8), roles, customerDetails (optional)</td>
+      <td>ROLE_ADMIN</td>
+      <td>201 / 403 / 409</td>
+      <td>Admin creates a new user. Optionally links to a new customer record in a single operation. Returns 409 if username exists.</td>
+    </tr>
+  </table>
+
+  <p class="tcap">Table 3.05: Customer Management API Feature Set</p>
+  <table class="rep">
+    <tr>
+      <th style="width:60pt;">Method</th>
+      <th>Endpoint</th>
+      <th>Request</th>
+      <th style="width:70pt;">Auth</th>
+      <th style="width:55pt;">Response</th>
+      <th>Purpose</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/v1/customers</code></td>
+      <td>Customers entity body</td>
+      <td>ADMIN</td>
+      <td>201</td>
+      <td>Creates a new customer record. Returns CustomerResponse DTO (not entity).</td>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td><code>/api/v1/customers</code></td>
+      <td>?page=0&amp;size=5</td>
+      <td>ADMIN</td>
+      <td>200</td>
+      <td>Returns paginated list of all customers as CustomerResponse DTOs.</td>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td><code>/api/v1/customers/{id}</code></td>
+      <td>Path param: id</td>
+      <td>ADMIN</td>
+      <td>200 / 404</td>
+      <td>Returns a single customer by ID.</td>
+    </tr>
+    <tr>
+      <td>PUT</td>
+      <td><code>/api/v1/customers/{id}</code></td>
+      <td>Customers body</td>
+      <td>ADMIN</td>
+      <td>200 / 404</td>
+      <td>Updates customer fields. Returns updated CustomerResponse.</td>
+    </tr>
+    <tr>
+      <td>DELETE</td>
+      <td><code>/api/v1/customers/{id}</code></td>
+      <td>Path param: id</td>
+      <td>ADMIN</td>
+      <td>204 / 404</td>
+      <td>Soft-deletes customer: sets is_deleted=true and deleted_at=now(). No physical row deletion.</td>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td><code>/api/v1/customers/filter/idtype/{idType}</code></td>
+      <td>Path: idType; ?page&amp;size</td>
+      <td>ADMIN</td>
+      <td>200</td>
+      <td>Filters customers by identity document type (e.g., PASSPORT, AADHAAR).</td>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td><code>/api/v1/customers/{id}/balance</code></td>
+      <td>Path param: id</td>
+      <td>USER/ADMIN</td>
+      <td>200 / 404</td>
+      <td>Returns current balance, currency, and account status from the bank_accounts table.</td>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td><code>/api/v1/customers/{id}/transactions</code></td>
+      <td>Path: id; ?page&amp;size</td>
+      <td>USER/ADMIN</td>
+      <td>200</td>
+      <td>Returns paginated transaction history for the customer, ordered by transaction_date DESC.</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/v1/customers/{id}/payment</code></td>
+      <td>Path: id; PaymentRequest body; optional Header: Idempotency-Key</td>
+      <td>USER/ADMIN</td>
+      <td>201 / 400 / 404 / 409 / 422</td>
+      <td>Creates a CREDIT or DEBIT transaction. Supports idempotency. Enforces transaction limits and account-status checks.</td>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td><code>/api/v1/customers/transactions/mode/{mode}</code></td>
+      <td>Path: mode (UPI/NEFT/etc.); ?page&amp;size</td>
+      <td>USER/ADMIN</td>
+      <td>200 / 400</td>
+      <td>Returns transactions filtered by transaction mode. Returns 400 if mode value is invalid.</td>
+    </tr>
+  </table>
+
+  <div class="pgnum">16 – 17</div>
+</div>
+
+
+<!-- ╔═════════════════════════════════════╗
+     ║  PAGE 15 – API FEATURE SET (2)     ║
+     ╚═════════════════════════════════════╝ -->
+<div class="page">
+
+  <p class="tcap">Table 3.06: Transaction and Transfer API Feature Set</p>
+  <table class="rep">
+    <tr>
+      <th style="width:60pt;">Method</th>
+      <th>Endpoint</th>
+      <th>Request</th>
+      <th style="width:70pt;">Auth</th>
+      <th style="width:55pt;">Response</th>
+      <th>Purpose</th>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td><code>/api/v1/transactions/{transactionId}</code></td>
+      <td>Path param: transactionId (e.g., TXN-UUID)</td>
+      <td>USER/ADMIN</td>
+      <td>200 / 404</td>
+      <td>Retrieves full transaction details by business transaction ID. Returns all ledger fields including balance snapshot.</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/v1/transactions/{transactionId}/reverse</code></td>
+      <td>Path param: original transactionId</td>
+      <td>ADMIN only</td>
+      <td>201 / 403 / 404 / 422</td>
+      <td>Creates an offsetting reversal transaction. If original was a DEBIT of ₹1,000, the reversal is a CREDIT of ₹1,000 with status REVERSED. The original record is not modified.</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/v1/transfers</code></td>
+      <td>TransferRequest body: sourceAccountNumber, destinationAccountNumber, amount (Positive), transactionMode, optional idempotencyKey; optional Header: Idempotency-Key</td>
+      <td>USER/ADMIN</td>
+      <td>201 / 400 / 404 / 409 / 422</td>
+      <td>Performs an atomic debit from source + credit to destination. Returns TransferResponse with two transaction IDs (one per ledger entry), transfer ID, balances, and status.</td>
+    </tr>
+  </table>
+
+  <p class="tcap">Table 3.07: TransactionMode Enum Values and Real-World Use Cases</p>
+  <table class="rep">
+    <tr>
+      <th style="width:80pt;">Mode Value</th>
+      <th>Full Name</th>
+      <th>Description and Typical Use Case</th>
+    </tr>
+    <tr>
+      <td><code>UPI</code></td>
+      <td>Unified Payments Interface</td>
+      <td>Real-time peer-to-peer payment via VPA (Virtual Payment Address). Used for mobile payments, merchant QR code transactions. Settlement is immediate. Example: Google Pay, PhonePe payments.</td>
+    </tr>
+    <tr>
+      <td><code>NEFT</code></td>
+      <td>National Electronic Funds Transfer</td>
+      <td>Batch-based fund transfer settled in hourly cycles by the RBI. Used for large-value interbank transfers. No minimum transaction limit. Available 24×7 since December 2019.</td>
+    </tr>
+    <tr>
+      <td><code>RTGS</code></td>
+      <td>Real-Time Gross Settlement</td>
+      <td>Real-time, individual gross settlement for high-value transactions (minimum ₹2,00,000). Used for corporate treasury operations, property transactions, and time-critical high-value transfers.</td>
+    </tr>
+    <tr>
+      <td><code>IMPS</code></td>
+      <td>Immediate Payment Service</td>
+      <td>Real-time interbank payment available 24×7 including holidays. Used when immediate settlement is required for amounts up to ₹5,00,000. Faster than NEFT, lower value than RTGS.</td>
+    </tr>
+    <tr>
+      <td><code>CASH</code></td>
+      <td>Cash Transaction</td>
+      <td>Physical cash deposit or withdrawal at bank branch. Recorded in the system for audit trail purposes.</td>
+    </tr>
+    <tr>
+      <td><code>CHEQUE</code></td>
+      <td>Cheque Payment</td>
+      <td>Paper-based payment instrument. Subject to clearing cycle (T+1 to T+2 business days). Used for legacy payments and high-value property transactions.</td>
+    </tr>
+    <tr>
+      <td><code>ONLINE</code></td>
+      <td>Online/Net Banking Transfer</td>
+      <td>Web or mobile banking initiated transfer. Covers card-not-present transactions, bill payments, and e-commerce settlements.</td>
+    </tr>
+  </table>
+
+  <p class="tcap">Table 3.08: TransactionStatus Lifecycle Values</p>
+  <table class="rep">
+    <tr>
+      <th style="width:110pt;">Status Value</th>
+      <th>Description</th>
+      <th style="width:130pt;">Transition</th>
+    </tr>
+    <tr><td><code>INITIATED</code></td><td>Transaction request received and validated. Processing has begun but the database write has not yet committed.</td><td>→ PROCESSING or FAILED</td></tr>
+    <tr><td><code>PROCESSING</code></td><td>Balance check passed. Lock acquired. Write in progress within the database transaction boundary.</td><td>→ SUCCESS or FAILED</td></tr>
+    <tr><td><code>SUCCESS</code></td><td>Transaction committed successfully. Balance updated. Ledger record persisted. Default terminal state for all completed transactions.</td><td>→ REVERSED (admin only)</td></tr>
+    <tr><td><code>FAILED</code></td><td>Transaction could not be completed. Causes: insufficient balance, invalid mode, account blocked, limit exceeded, or optimistic lock conflict.</td><td>Terminal state</td></tr>
+    <tr><td><code>REVERSED</code></td><td>The transaction has been reversed by an administrator. An offsetting transaction has been created. The original record's status is updated to REVERSED.</td><td>Terminal state</td></tr>
+    <tr><td><code>CANCELLED</code></td><td>Transaction was intentionally cancelled before processing (e.g., user-initiated cancellation via future cancellation endpoint).</td><td>Terminal state</td></tr>
+  </table>
+
+  <div class="callout">
+    <strong>Key Design Decision — Idempotency Key Header:</strong> The payment and transfer endpoints accept an optional <code>Idempotency-Key</code> HTTP header. When present, the system stores a hash of the key along with the serialized response in the <code>idempotency_keys</code> table. If the same key is submitted again (e.g., due to a client retry after a network timeout), the stored response is returned immediately without re-processing. This pattern is used by Stripe, Razorpay, and the RBI's NACH mandate system to prevent duplicate financial operations at the API boundary.
+  </div>
+
+  <div class="pgnum">18 – 20</div>
+</div>
+
+</body>
+</html>

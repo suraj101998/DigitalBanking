@@ -1,0 +1,597 @@
+{
+  "info": {
+    "_postman_id": "a3f2a610-e1e2-4f7d-8541-998f9495d5df",
+    "name": "DigitalBanking",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "19550433"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"userName\": \"Suraj\",\r\n    \"password\": \"Suraj@101998\"\r\n}\r\n\r\n//Suraj, Suraj@101998\r\n//Simran, Suraj@101998\r\n//Suresh, Suraj@101998\r\n//SurajK, Suraj@101998\r\n//Suraj Kumar, Suraj@101998\r\n//mansi, password",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register an Admin",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"userName\": \"SurajK\",\r\n    \"password\": \"Suraj@101998\",\r\n    \"roles\": \"ROLE_ADMIN\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/auth/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register a User",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"userName\": \"Suresh\",\r\n    \"password\": \"Suraj@101998\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/auth/public-register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "auth",
+            "public-register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AddCustomers",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJTdXJhaksiLCJpYXQiOjE3NDY5NzcxNDAsImV4cCI6MTc0NzAxMzE0MH0.IN8mqoxfVTTQ5O3exuDkR15hvZLP25KVmBqmfp-NCYw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Suraj Mishra\",\r\n  \"id_type\": \"PAN\",\r\n  \"id_num\": \"BHTPC5201N\",\r\n  \"dob\": \"1998-02-16\",\r\n  \"phone\": 9790767963,\r\n  \"email\": \"surajmishra82@gmail.com\",\r\n  \"address\": \"123 Main St, Kolkata, India\",\r\n  \"sex\": \"Male\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/customers/AddCustomers",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "AddCustomers"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DisplayAllCustomers",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfQURNSU4iLCJzdWIiOiJTdXJhaiIsImlhdCI6MTc3NDAwNjQyOCwiZXhwIjoxNzc0MDEwMDI4fQ.JfhHFTceLj-468V8ydZ7MPI43Lg6HQxs5-M2W_I7B5lcveAwJMSmtVDY3qjl-GNY4muF7W9Iey2VGFx5NO-Qxw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/customers/DisplayAllCustomers?sortBy=customerId&sortDir=desc&page=0&size=5",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "DisplayAllCustomers"
+          ],
+          "query": [
+            {
+              "key": "sortBy",
+              "value": "customerId"
+            },
+            {
+              "key": "sortDir",
+              "value": "desc"
+            },
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "5"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "FindByCustomerID",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfQURNSU4iLCJzdWIiOiJTdXJhaiIsImlhdCI6MTc3Mzk3OTY3MSwiZXhwIjoxNzczOTgzMjcxfQ.PRyd0H9wV2fLwIujU5bDQfqwt99sQdwC-YWczYBhZnJAj86E0r8lQg77DVWeD_0SUXogMxaj53ilSA4jTBkZ7A",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/customers/FindByCustomerID/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "FindByCustomerID",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UpdateCustomer",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJTdXJhaksiLCJpYXQiOjE3NDY5NTA1OTIsImV4cCI6MTc0Njk4NjU5Mn0.6n96Ug24nTUrWzzabDyUgqkf1yFNtlHCbCsbjPdoIKg",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Suraj Mishra\",\r\n  \"id_type\": \"PAN\",\r\n  \"id_num\": \"BHTPC5201V\",\r\n  \"dob\": \"1998-02-18\",\r\n  \"phone\": 9790767965,\r\n  \"email\": \"surajmishra82@gmail.com\",\r\n  \"address\": \"123 Main St, Kolkata, India\",\r\n  \"sex\": \"Male\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/customers/UpdateCustomer/5",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "UpdateCustomer",
+            "5"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DeleteCustomer",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJTdXJhaksiLCJpYXQiOjE3NDY5NTA1OTIsImV4cCI6MTc0Njk4NjU5Mn0.6n96Ug24nTUrWzzabDyUgqkf1yFNtlHCbCsbjPdoIKg",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/customers/DeleteCustomer/4",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "DeleteCustomer",
+            "4"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "FilterCustomersByIDPoof",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfQURNSU4iLCJzdWIiOiJTdXJhaiIsImlhdCI6MTc3Mzk4NzY2NSwiZXhwIjoxNzczOTkxMjY1fQ._8jl5Q5-8JpBuOJL2Ii9ehVx1MkAvfitwt_mW5_LLAEOmsG_m1tKnJiWM4N-3Dea6OzHOg3a3ZLvLa2Vv7qIZQ",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/customers/FilterCustomersByIDPoof/PAN",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "FilterCustomersByIDPoof",
+            "PAN"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AllTransactionHistory",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfVVNFUiIsInN1YiI6IlNpbXJhbiIsImlhdCI6MTc3Mzk5MzY1MywiZXhwIjoxNzczOTk3MjUzfQ.AEi5j-NvuUyeJxRftBjlucR9giilp7P0RL9l5guwFekVZZGfjatBjajUhUqEhVBmNlJHf772PFTdkXW2nuvAeQ",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/customers/AllTransactionsHistory?page=1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "AllTransactionsHistory"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LatestTransactions",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfQURNSU4iLCJzdWIiOiJTdXJhaiIsImlhdCI6MTc3NDAxNDIyNiwiZXhwIjoxNzc0MDE3ODI2fQ.8vp6gzO7FFaWkbLFPoRlQIBqJ2sTzr0sZy8Tjrn9xuNIbI-4SZOv4EToY0WQr5GQtdB-pp6UvcK0CgVsLAB7oQ",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/customers/LatestTransactions?page=0",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "LatestTransactions"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "MiniStatement",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfQURNSU4iLCJzdWIiOiJTdXJhaiIsImlhdCI6MTc3Mzk4ODM1OSwiZXhwIjoxNzczOTkxOTU5fQ.ru--D-E3tGYgp2fIdVvVS2JhN2Sp1--pdWg4xS1pk_WTym2_ps6MCo0cZFiBirkbCGVEd9L-H2jzeiYaPHkfsQ",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080 /customers/Ministatement/1?page=0",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080 ",
+          "path": [
+            "customers",
+            "Ministatement",
+            "1"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CheckBalance",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfQURNSU4iLCJzdWIiOiJTdXJhaiIsImlhdCI6MTc3NDAwNjQyOCwiZXhwIjoxNzc0MDEwMDI4fQ.JfhHFTceLj-468V8ydZ7MPI43Lg6HQxs5-M2W_I7B5lcveAwJMSmtVDY3qjl-GNY4muF7W9Iey2VGFx5NO-Qxw",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/customers/CheckBalance/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "CheckBalance",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CheckTransactionMode",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfQURNSU4iLCJzdWIiOiJTdXJhaiIsImlhdCI6MTc3Mzk4ODM1OSwiZXhwIjoxNzczOTkxOTU5fQ.ru--D-E3tGYgp2fIdVvVS2JhN2Sp1--pdWg4xS1pk_WTym2_ps6MCo0cZFiBirkbCGVEd9L-H2jzeiYaPHkfsQ",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/customers/CheckTransactionMode/online?page=0",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "CheckTransactionMode",
+            "online"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Banking",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfQURNSU4iLCJzdWIiOiJTdXJhaiIsImlhdCI6MTc3NDAxNDIyNiwiZXhwIjoxNzc0MDE3ODI2fQ.8vp6gzO7FFaWkbLFPoRlQIBqJ2sTzr0sZy8Tjrn9xuNIbI-4SZOv4EToY0WQr5GQtdB-pp6UvcK0CgVsLAB7oQ",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"transaction_type\": \"credit\",              // \"credit\" or \"debit\"\r\n  \"transaction_to\": \"SELF\",\r\n  \"transaction_amount\": 1000,\r\n  \"transaction_mode\": \"online\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/customers/Banking?customerId=1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "Banking"
+          ],
+          "query": [
+            {
+              "key": "customerId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "payment",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfQURNSU4iLCJzdWIiOiJTdXJhaiIsImlhdCI6MTc3NDAxNDUzMCwiZXhwIjoxNzc0MDE4MTMwfQ.lARZm3lMA-pj3qhFqXVRLEfbIhDAJC06djsQsncr5d13ZcdL2Q2xonCI9eIdCScJcMJqLjm1bMIYbnJ804EV_g",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"transaction_type\": \"debit\",              // \"credit\" or \"debit\"\r\n  \"transaction_to\": \"SELF\",\r\n  \"transaction_amount\": 1000,\r\n  \"transaction_mode\": \"online\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/customers/payment/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "customers",
+            "payment",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

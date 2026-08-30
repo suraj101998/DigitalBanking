@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigitalBanking – Project Report | Part 1 of 5</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12pt;
+  line-height: 1.8;
+  color: #000;
+  background: #e8e8e8;
+}
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 20px auto;
+  padding: 25.4mm 31.75mm 25.4mm 31.75mm;
+  background: #fff;
+  box-shadow: 0 3px 16px rgba(0,0,0,0.18);
+  position: relative;
+  page-break-after: always;
+}
+@media print {
+  body { background: #fff; }
+  .page { box-shadow: none; margin: 0; }
+}
+/* Typography */
+h1.ch { font-size: 16pt; font-weight: 700; text-align: center; text-transform: uppercase;
+        letter-spacing: 1pt; border-bottom: 2pt solid #000; padding-bottom: 8pt;
+        margin: 0 0 20pt 0; }
+h2.sec { font-size: 14pt; font-weight: 700; text-align: left; margin: 18pt 0 8pt 0; }
+h3.sub { font-size: 12pt; font-weight: 700; margin: 12pt 0 5pt 0; text-decoration: underline; }
+p { text-align: justify; margin-bottom: 9pt; font-size: 12pt; line-height: 1.8; }
+p.ctr { text-align: center; }
+/* Tables */
+.tcap { font-size: 11pt; font-weight: 700; margin: 14pt 0 4pt 0; }
+table.rep { width: 100%; border-collapse: collapse; margin-bottom: 12pt; font-size: 10.5pt; }
+table.rep th { background: #1c2e4a; color: #fff; padding: 7pt 8pt; border: 1pt solid #000; text-align: left; font-weight: 700; }
+table.rep td { padding: 6pt 8pt; border: 1pt solid #444; vertical-align: top; line-height: 1.6; }
+table.rep tr:nth-child(even) td { background: #f4f6f9; }
+/* TOC */
+.toc-row { display: flex; align-items: baseline; margin-bottom: 5pt; font-size: 11.5pt; }
+.toc-row .dots { flex: 1; border-bottom: 1pt dotted #888; margin: 0 6pt; position: relative; top: -3pt; }
+.toc-row.l2 { padding-left: 18pt; font-size: 11pt; }
+/* Page number */
+.pgnum { position: absolute; bottom: 14mm; right: 31.75mm; font-size: 10pt; color: #555; }
+.pgctr { position: absolute; bottom: 14mm; left: 0; right: 0; text-align: center; font-size: 10pt; color: #555; }
+/* Diagrams */
+.diag { background: #f4f7fb; border: 1pt solid #b0c4de; border-radius: 4pt;
+        padding: 14pt; margin: 14pt 0; font-family: "Courier New", monospace; font-size: 9pt;
+        line-height: 1.55; white-space: pre; overflow-x: auto; }
+.fcap { font-size: 11pt; font-style: italic; text-align: center; margin-top: 6pt; margin-bottom: 12pt; }
+/* Divider */
+hr.sec-div { border: none; border-top: 1pt solid #ccc; margin: 18pt 0; }
+</style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════╗
+     ║  PAGE 1  –  TITLE PAGE      ║
+     ╚══════════════════════════════╝ -->
+<div class="page">
+
+  <p class="ctr" style="font-size:11pt; letter-spacing:3pt; font-weight:700; margin-bottom:6pt;">
+    SCALER NEOVARSITY — WOOLF UNIVERSITY
+  </p>
+  <p class="ctr" style="font-size:10pt; color:#333; margin-bottom:30pt;">
+    Master of Science in Computer Science &nbsp;|&nbsp; Backend Specialization
+  </p>
+
+  <hr style="border:none; border-top:2pt solid #1c2e4a; margin-bottom:30pt;">
+
+  <p class="ctr" style="font-size:11pt; font-style:italic; margin-bottom:6pt;">Applied Software Project Report</p>
+
+  <p class="ctr" style="font-size:22pt; font-weight:700; line-height:1.3; margin-bottom:10pt;">
+    DigitalBanking
+  </p>
+
+  <p class="ctr" style="font-size:13pt; font-style:italic; margin-bottom:30pt; color:#1c2e4a;">
+    A Production-Grade Spring Boot Backend for a<br>Secure and Scalable Digital Banking Platform
+  </p>
+
+  <hr style="border:none; border-top:2pt solid #1c2e4a; margin-bottom:30pt;">
+
+  <p class="ctr" style="font-size:12pt; margin-bottom:6pt;">Submitted by</p>
+  <p class="ctr" style="font-size:18pt; font-weight:700; margin-bottom:6pt;">Suraj Chakraborty</p>
+
+  <p class="ctr" style="font-size:11pt; line-height:2; margin-bottom:30pt;">
+    A Master's Project Report submitted to Scaler Neovarsity — Woolf University<br>
+    in partial fulfillment of the requirements for the degree of<br>
+    <strong>Master of Science in Computer Science</strong>
+  </p>
+
+  <p class="ctr" style="font-size:13pt; font-weight:700; margin-bottom:30pt;">August 2025</p>
+
+  <hr style="border:none; border-top:1pt solid #ccc; margin-bottom:16pt;">
+
+  <table style="width:100%; border:none; font-size:11pt; line-height:2;">
+    <tr>
+      <td style="border:none; padding:2pt 0; width:46%"><strong>Scaler Mentee Email ID</strong></td>
+      <td style="border:none; padding:2pt 0">: suraj.chakraborty@scaler.com</td>
+    </tr>
+    <tr>
+      <td style="border:none; padding:2pt 0"><strong>Thesis Supervisor</strong></td>
+      <td style="border:none; padding:2pt 0">: Naman Bhalla</td>
+    </tr>
+    <tr>
+      <td style="border:none; padding:2pt 0"><strong>Date of Submission</strong></td>
+      <td style="border:none; padding:2pt 0">: 30 / 08 / 2025</td>
+    </tr>
+    <tr>
+      <td style="border:none; padding:2pt 0"><strong>Project Period</strong></td>
+      <td style="border:none; padding:2pt 0">: January 2025 – August 2025</td>
+    </tr>
+  </table>
+
+  <div class="pgctr">i</div>
+</div>
+
+
+<!-- ╔══════════════════════════════╗
+     ║  PAGE 2  –  CERTIFICATION   ║
+     ╚══════════════════════════════╝ -->
+<div class="page">
+  <h1 class="ch">Certification</h1>
+
+  <p>I confirm that I have overseen and reviewed this applied project titled <em>"DigitalBanking — A Production-Grade Spring Boot Backend for a Secure and Scalable Digital Banking Platform"</em>, submitted by <strong>Suraj Chakraborty</strong> for the degree of Master of Science in Computer Science from Scaler Neovarsity — Woolf University.</p>
+
+  <p>In my judgment, the project adheres to the appropriate standards of academic presentation expected of a Master's level applied project. The work demonstrates sound understanding of enterprise-grade backend engineering, including financial transaction correctness, concurrency control, security architecture, database design, observability, and testing methodology. I believe the project satisfactorily meets the criteria — in terms of both quality and breadth — to serve as an applied project report for the attainment of the Master of Science in Computer Science degree.</p>
+
+  <p>This applied project report has been submitted to Woolf University and is deemed sufficient to fulfill the prerequisites for the Master of Science in Computer Science degree.</p>
+
+  <br><br><br><br><br><br>
+
+  <p><strong>Naman Bhalla</strong></p>
+  <p style="margin-top:4pt; margin-bottom:2pt;">
+    <span style="display:inline-block; width:220pt; border-bottom:1pt solid #000;">&nbsp;</span>
+  </p>
+  <p><em>Project Guide / Supervisor</em><br>
+     Scaler Neovarsity — Woolf University<br>
+     Date: ______________________</p>
+
+  <div class="pgctr">ii</div>
+</div>
+
+
+<!-- ╔══════════════════════════════╗
+     ║  PAGE 3  –  DECLARATION     ║
+     ╚══════════════════════════════╝ -->
+<div class="page">
+  <h1 class="ch">Declaration</h1>
+
+  <p>I confirm that this project report, submitted to fulfill the requirements for the Master of Science in Computer Science degree, was completed by me from <strong>January 2025</strong> to <strong>August 2025</strong>, and is the result of my own individual endeavor. The project has been developed under the guidance of my supervisor with proper acknowledgement and without plagiarism.</p>
+
+  <p>The technical work described in this report — including the design and implementation of the DigitalBanking Spring Boot application, its database schema, security architecture, transaction engine, idempotency mechanism, and test suite — was carried out by me independently. Where external libraries, frameworks, academic papers, or online resources have been consulted or referenced, they are appropriately cited in the References section.</p>
+
+  <p>Any contributions from external sources or individuals, including the use of AI-assisted tools for code generation or document drafting, are appropriately acknowledged through citation. I understand that the integrity of this submission is paramount to the academic standards of Scaler Neovarsity and Woolf University.</p>
+
+  <p>By making this declaration, I acknowledge that any violation of this statement constitutes academic misconduct. I understand that such misconduct may lead to expulsion from the program and/or disqualification from receiving the degree.</p>
+
+  <br><br><br><br><br>
+
+  <table style="width:100%; border:none; font-size:11.5pt;">
+    <tr>
+      <td style="border:none; padding:4pt 0; width:55%;">
+        <p><strong>Suraj Chakraborty</strong></p>
+        <p style="margin-top:8pt; margin-bottom:2pt;">
+          <span style="display:inline-block; width:200pt; border-bottom:1pt solid #000;">&nbsp;</span>
+        </p>
+        <p><em>Signature of the Candidate</em></p>
+      </td>
+      <td style="border:none; padding:4pt 0; text-align:right; vertical-align:top;">
+        <p><strong>Date:</strong> 30 August 2025</p>
+      </td>
+    </tr>
+  </table>
+
+  <div class="pgctr">iii</div>
+</div>
+
+
+<!-- ╔══════════════════════════════════╗
+     ║  PAGE 4  –  ACKNOWLEDGMENT      ║
+     ╚══════════════════════════════════╝ -->
+<div class="page">
+  <h1 class="ch">Acknowledgment</h1>
+
+  <p>I would like to express my profound gratitude to everyone who supported me throughout this Master's program and in the completion of this applied project. First and foremost, I am deeply thankful to my project supervisor, <strong>Naman Bhalla</strong>, whose technical guidance, timely feedback, and unwavering encouragement made this project possible. His deep expertise in production-grade backend architecture, system design, and distributed systems were invaluable in shaping the architectural decisions embedded in this work — from the choice of pessimistic locking strategies for financial transactions to the design of the token rotation mechanism for JWT refresh tokens.</p>
+
+  <p>I owe a tremendous debt of gratitude to the entire faculty at <strong>Scaler Neovarsity — Woolf University</strong> for delivering a curriculum that bridges academic rigor with real-world industry practice. The modules on system design, relational databases, distributed computing, Spring Boot architecture, and software engineering fundamentals provided the theoretical and practical foundations upon which this project is built. The depth and quality of instruction in these modules directly enabled me to approach the design of a banking backend with the seriousness it demands.</p>
+
+  <p>Special thanks to all the Scaler instructors and teaching assistants who patiently answered questions, reviewed code, and provided detailed feedback during the live sessions and office hours. The module on database design — particularly the discussions around normalization, indexing, and foreign key integrity — directly influenced the schema design choices made in this project.</p>
+
+  <p>I am also grateful to the vibrant community of fellow students at Scaler, whose collaborative spirit and shared learning made the journey both intellectually stimulating and personally rewarding. Peer discussions on JPA locking strategies, Hibernate lazy loading pitfalls, and Spring Security filter chains reinforced concepts that were then applied directly in this codebase.</p>
+
+  <p>I extend heartfelt thanks to my family for their endless patience and moral support during the many late nights and weekends invested in building, debugging, and refining this application. Their belief in my abilities and their acceptance of my unavailability during critical phases of the project were a constant source of motivation.</p>
+
+  <p>Finally, I acknowledge the extraordinary open-source community whose libraries — Spring Boot, Hibernate, JJWT, Bucket4j, Flyway, Testcontainers, Micrometer, and many more — form the technical backbone of this project. Without the collective effort of thousands of contributors to these frameworks, building a production-ready banking backend within the constraints of an academic timeline would have been an insurmountable task.</p>
+
+  <div class="pgctr">iv</div>
+</div>
+
+
+<!-- ╔════════════════════════════════════╗
+     ║  PAGE 5  –  TABLE OF CONTENTS     ║
+     ╚════════════════════════════════════╝ -->
+<div class="page">
+  <h1 class="ch">Table of Contents</h1>
+  <br>
+
+  <div class="toc-row"><span><strong>List of Tables</strong></span><span class="dots"></span><span>vi</span></div>
+  <div class="toc-row"><span><strong>List of Figures</strong></span><span class="dots"></span><span>vii</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>Chapter 1 &nbsp;–&nbsp; Abstract</strong></span><span class="dots"></span><span>1</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>Chapter 2 &nbsp;–&nbsp; Project Description</strong></span><span class="dots"></span><span>2</span></div>
+  <div class="toc-row l2"><span>2.1 &nbsp; Project Overview and Motivation</span><span class="dots"></span><span>2</span></div>
+  <div class="toc-row l2"><span>2.2 &nbsp; Project Objectives</span><span class="dots"></span><span>3</span></div>
+  <div class="toc-row l2"><span>2.3 &nbsp; High-Level System Architecture</span><span class="dots"></span><span>4</span></div>
+  <div class="toc-row l2"><span>2.4 &nbsp; MVC Request-Response Flow</span><span class="dots"></span><span>5</span></div>
+  <div class="toc-row l2"><span>2.5 &nbsp; Technology Stack Overview</span><span class="dots"></span><span>6</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>Chapter 3 &nbsp;–&nbsp; Requirement Gathering</strong></span><span class="dots"></span><span>11</span></div>
+  <div class="toc-row l2"><span>3.1 &nbsp; Functional Requirements</span><span class="dots"></span><span>11</span></div>
+  <div class="toc-row l2"><span>3.2 &nbsp; Non-Functional Requirements</span><span class="dots"></span><span>13</span></div>
+  <div class="toc-row l2"><span>3.3 &nbsp; User Roles and Use Cases</span><span class="dots"></span><span>14</span></div>
+  <div class="toc-row l2"><span>3.4 &nbsp; API Feature Set</span><span class="dots"></span><span>16</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>Chapter 4 &nbsp;–&nbsp; Class Diagrams</strong></span><span class="dots"></span><span>21</span></div>
+  <div class="toc-row l2"><span>4.1 &nbsp; Entity Class Diagram</span><span class="dots"></span><span>21</span></div>
+  <div class="toc-row l2"><span>4.2 &nbsp; Service Layer Architecture</span><span class="dots"></span><span>24</span></div>
+  <div class="toc-row l2"><span>4.3 &nbsp; Security Layer Design</span><span class="dots"></span><span>26</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>Chapter 5 &nbsp;–&nbsp; Database Schema Design</strong></span><span class="dots"></span><span>28</span></div>
+  <div class="toc-row l2"><span>5.1 &nbsp; Schema Overview</span><span class="dots"></span><span>28</span></div>
+  <div class="toc-row l2"><span>5.2 &nbsp; Table Definitions</span><span class="dots"></span><span>29</span></div>
+  <div class="toc-row l2"><span>5.3 &nbsp; Foreign Keys, Cardinality and Indexes</span><span class="dots"></span><span>35</span></div>
+  <div class="toc-row l2"><span>5.4 &nbsp; Flyway Migration Strategy</span><span class="dots"></span><span>37</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>Chapter 6 &nbsp;–&nbsp; Feature Development Process</strong></span><span class="dots"></span><span>39</span></div>
+  <div class="toc-row l2"><span>6.1 &nbsp; The Make Payment Feature</span><span class="dots"></span><span>39</span></div>
+  <div class="toc-row l2"><span>6.2 &nbsp; Idempotency Implementation</span><span class="dots"></span><span>43</span></div>
+  <div class="toc-row l2"><span>6.3 &nbsp; Atomic Fund Transfer</span><span class="dots"></span><span>45</span></div>
+  <div class="toc-row l2"><span>6.4 &nbsp; Performance Optimization</span><span class="dots"></span><span>47</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>Chapter 7 &nbsp;–&nbsp; Deployment Flow</strong></span><span class="dots"></span><span>50</span></div>
+  <div class="toc-row l2"><span>7.1 &nbsp; AWS Deployment Architecture</span><span class="dots"></span><span>50</span></div>
+  <div class="toc-row l2"><span>7.2 &nbsp; EC2, VPC and Security Groups</span><span class="dots"></span><span>51</span></div>
+  <div class="toc-row l2"><span>7.3 &nbsp; RDS, ElastiCache and Elastic Beanstalk</span><span class="dots"></span><span>53</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>Chapter 8 &nbsp;–&nbsp; Technologies Used</strong></span><span class="dots"></span><span>56</span></div>
+  <div class="toc-row l2"><span>8.1 &nbsp; Spring Boot 3.4</span><span class="dots"></span><span>56</span></div>
+  <div class="toc-row l2"><span>8.2 &nbsp; MySQL 8 and Flyway</span><span class="dots"></span><span>58</span></div>
+  <div class="toc-row l2"><span>8.3 &nbsp; Spring Security and JWT</span><span class="dots"></span><span>60</span></div>
+  <div class="toc-row l2"><span>8.4 &nbsp; Bucket4j Rate Limiting</span><span class="dots"></span><span>62</span></div>
+  <div class="toc-row l2"><span>8.5 &nbsp; Micrometer and Prometheus</span><span class="dots"></span><span>64</span></div>
+  <div class="toc-row l2"><span>8.6 &nbsp; Testcontainers</span><span class="dots"></span><span>66</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>Chapter 9 &nbsp;–&nbsp; Conclusion</strong></span><span class="dots"></span><span>68</span></div>
+  <div class="toc-row l2"><span>9.1 &nbsp; Key Takeaways</span><span class="dots"></span><span>68</span></div>
+  <div class="toc-row l2"><span>9.2 &nbsp; Practical Applications</span><span class="dots"></span><span>69</span></div>
+  <div class="toc-row l2"><span>9.3 &nbsp; Limitations and Future Work</span><span class="dots"></span><span>70</span></div>
+  <br>
+
+  <div class="toc-row"><span><strong>References</strong></span><span class="dots"></span><span>72</span></div>
+
+  <div class="pgctr">v</div>
+</div>
+
+
+<!-- ╔══════════════════════════════════╗
+     ║  PAGE 6  –  LIST OF TABLES      ║
+     ╚══════════════════════════════════╝ -->
+<div class="page">
+  <h1 class="ch">List of Tables</h1>
+  <p style="font-style:italic; margin-bottom:12pt; font-size:11pt;">(Listed sequentially as they appear in the text. Second table in Chapter 3 is numbered Table 3.02, etc.)</p>
+
+  <table class="rep">
+    <tr><th style="width:90pt;">Table No.</th><th>Title</th><th style="width:70pt; text-align:center;">Page No.</th></tr>
+    <tr><td>Table 2.01</td><td>Technology Stack — Components and Versions</td><td style="text-align:center;">6</td></tr>
+    <tr><td>Table 3.01</td><td>Functional Requirements</td><td style="text-align:center;">11</td></tr>
+    <tr><td>Table 3.02</td><td>Non-Functional Requirements</td><td style="text-align:center;">13</td></tr>
+    <tr><td>Table 3.03</td><td>User Roles and Permission Matrix</td><td style="text-align:center;">14</td></tr>
+    <tr><td>Table 3.04</td><td>Authentication API Feature Set</td><td style="text-align:center;">16</td></tr>
+    <tr><td>Table 3.05</td><td>Customer Management API Feature Set</td><td style="text-align:center;">17</td></tr>
+    <tr><td>Table 3.06</td><td>Transaction and Transfer API Feature Set</td><td style="text-align:center;">18</td></tr>
+    <tr><td>Table 3.07</td><td>TransactionMode Enum Values and Use Cases</td><td style="text-align:center;">19</td></tr>
+    <tr><td>Table 3.08</td><td>TransactionStatus Lifecycle Values</td><td style="text-align:center;">20</td></tr>
+    <tr><td>Table 5.01</td><td>customers Table — Column Definitions</td><td style="text-align:center;">29</td></tr>
+    <tr><td>Table 5.02</td><td>users Table — Column Definitions</td><td style="text-align:center;">30</td></tr>
+    <tr><td>Table 5.03</td><td>bank_accounts Table — Column Definitions</td><td style="text-align:center;">31</td></tr>
+    <tr><td>Table 5.04</td><td>transactions Table — Column Definitions</td><td style="text-align:center;">32</td></tr>
+    <tr><td>Table 5.05</td><td>idempotency_keys Table — Column Definitions</td><td style="text-align:center;">33</td></tr>
+    <tr><td>Table 5.06</td><td>refresh_tokens Table — Column Definitions</td><td style="text-align:center;">34</td></tr>
+    <tr><td>Table 5.07</td><td>Foreign Key Relationships Summary</td><td style="text-align:center;">35</td></tr>
+    <tr><td>Table 5.08</td><td>Table Cardinality Summary</td><td style="text-align:center;">36</td></tr>
+    <tr><td>Table 5.09</td><td>Database Indexes</td><td style="text-align:center;">36</td></tr>
+    <tr><td>Table 6.01</td><td>PaymentRequest DTO — Field Validations</td><td style="text-align:center;">40</td></tr>
+    <tr><td>Table 6.02</td><td>Make Payment — Service Processing Steps</td><td style="text-align:center;">41</td></tr>
+    <tr><td>Table 6.03</td><td>Transaction Limits Configuration</td><td style="text-align:center;">42</td></tr>
+    <tr><td>Table 6.04</td><td>Performance Benchmarks — Before and After Optimization</td><td style="text-align:center;">48</td></tr>
+    <tr><td>Table 6.05</td><td>Micrometer Metrics Exposed by the Application</td><td style="text-align:center;">49</td></tr>
+    <tr><td>Table 8.01</td><td>Complete Project Dependency Summary</td><td style="text-align:center;">56</td></tr>
+    <tr><td>Table 8.02</td><td>HikariCP Connection Pool Configuration</td><td style="text-align:center;">59</td></tr>
+    <tr><td>Table 8.03</td><td>JWT Configuration Parameters</td><td style="text-align:center;">61</td></tr>
+    <tr><td>Table 8.04</td><td>Test Suite Summary</td><td style="text-align:center;">67</td></tr>
+  </table>
+  <div class="pgctr">vi</div>
+</div>
+
+
+<!-- ╔══════════════════════════════════╗
+     ║  PAGE 7  –  LIST OF FIGURES     ║
+     ╚══════════════════════════════════╝ -->
+<div class="page">
+  <h1 class="ch">List of Figures</h1>
+  <p style="font-style:italic; margin-bottom:12pt; font-size:11pt;">(List of all architecture diagrams, flow diagrams and illustrations in the text.)</p>
+
+  <table class="rep">
+    <tr><th style="width:90pt;">Figure No.</th><th>Title</th><th style="width:70pt; text-align:center;">Page No.</th></tr>
+    <tr><td>Figure 2.1</td><td>High-Level System Architecture Diagram</td><td style="text-align:center;">4</td></tr>
+    <tr><td>Figure 2.2</td><td>Spring MVC Request-Response Flow</td><td style="text-align:center;">5</td></tr>
+    <tr><td>Figure 3.1</td><td>Use Case Diagram — Admin Role</td><td style="text-align:center;">14</td></tr>
+    <tr><td>Figure 3.2</td><td>Use Case Diagram — Regular User Role</td><td style="text-align:center;">15</td></tr>
+    <tr><td>Figure 4.1</td><td>Entity Relationship Class Diagram</td><td style="text-align:center;">21</td></tr>
+    <tr><td>Figure 4.2</td><td>Service Layer Class Diagram</td><td style="text-align:center;">24</td></tr>
+    <tr><td>Figure 4.3</td><td>Spring Security Filter Chain</td><td style="text-align:center;">26</td></tr>
+    <tr><td>Figure 5.1</td><td>Database Entity-Relationship (ER) Diagram</td><td style="text-align:center;">28</td></tr>
+    <tr><td>Figure 5.2</td><td>Flyway Migration Timeline</td><td style="text-align:center;">37</td></tr>
+    <tr><td>Figure 6.1</td><td>Make Payment — Full Request Flow Diagram</td><td style="text-align:center;">39</td></tr>
+    <tr><td>Figure 6.2</td><td>Idempotency Key Lifecycle Diagram</td><td style="text-align:center;">43</td></tr>
+    <tr><td>Figure 6.3</td><td>Atomic Transfer — Deadlock-Safe Lock Ordering</td><td style="text-align:center;">45</td></tr>
+    <tr><td>Figure 6.4</td><td>Concurrency Model — Optimistic vs Pessimistic Locking</td><td style="text-align:center;">46</td></tr>
+    <tr><td>Figure 7.1</td><td>AWS Production Deployment Architecture</td><td style="text-align:center;">50</td></tr>
+    <tr><td>Figure 7.2</td><td>VPC Subnet and Network Topology</td><td style="text-align:center;">51</td></tr>
+    <tr><td>Figure 7.3</td><td>Elastic Beanstalk — Auto-Scaling Group</td><td style="text-align:center;">54</td></tr>
+    <tr><td>Figure 8.1</td><td>Spring Boot Application Layers</td><td style="text-align:center;">56</td></tr>
+    <tr><td>Figure 8.2</td><td>JWT Authentication and Refresh Token Flow</td><td style="text-align:center;">60</td></tr>
+    <tr><td>Figure 8.3</td><td>Bucket4j Token-Bucket Rate Limiting Algorithm</td><td style="text-align:center;">62</td></tr>
+    <tr><td>Figure 8.4</td><td>Micrometer → Prometheus → Grafana Observability Pipeline</td><td style="text-align:center;">64</td></tr>
+    <tr><td>Figure 8.5</td><td>Testcontainers Integration Test Architecture</td><td style="text-align:center;">66</td></tr>
+  </table>
+  <div class="pgctr">vii</div>
+</div>
+
+
+<!-- ╔══════════════════════════════╗
+     ║  PAGE 8  –  ABSTRACT        ║
+     ╚══════════════════════════════╝ -->
+<div class="page">
+  <h1 class="ch">Chapter 1 &nbsp;–&nbsp; Abstract</h1>
+
+  <p>This report presents the design, architecture, implementation, and evaluation of <strong>DigitalBanking</strong> — a production-grade REST API backend for a digital banking platform, built using Spring Boot 3.4 and Java 17. The project addresses the critical shortcomings commonly found in learning-level banking applications — namely, the use of primitive data types for monetary values, the absence of concurrent transaction safety, lack of idempotency, and weak security postures — by applying production engineering principles throughout the design and implementation phases.</p>
+
+  <p>The application provides a comprehensive suite of banking operations including customer account management, real-time credit and debit transactions, atomic fund transfers between accounts, JWT-based authentication with refresh token rotation, role-based access control, account lockout after repeated failed login attempts, and per-IP rate limiting using the Bucket4j token-bucket algorithm. All monetary values are stored and computed using <code>BigDecimal</code> with <code>DECIMAL(19,4)</code> precision at the database level, ensuring exact arithmetic without floating-point rounding errors.</p>
+
+  <p>Concurrent transaction correctness is guaranteed through a dual-locking strategy: <em>pessimistic locking</em> (SELECT FOR UPDATE via Spring Data JPA) prevents lost-update race conditions on bank account balances, while <em>optimistic locking</em> (Hibernate <code>@Version</code>) provides a last-resort safety net against concurrent modifications. Fund transfers between two accounts are made deadlock-safe by acquiring database row locks in ascending account-ID order, preventing the classic A→B / B→A circular wait scenario.</p>
+
+  <p>The persistence layer is managed using MySQL 8 with Flyway database migrations, replacing unreliable Hibernate DDL auto-generation with a version-controlled schema. Observability is provided through Micrometer metrics (exposed as Prometheus endpoints), SLF4J structured logging with per-request correlation IDs via MDC, and Spring Boot Actuator. The application includes a comprehensive test suite comprising 38 tests across unit, repository slice, security, and Testcontainers-based integration test categories.</p>
+
+  <p>The practical significance of this project lies in its direct applicability to the fintech industry. The patterns demonstrated — idempotent payment APIs, pessimistic locking for financial ledgers, JWT lifecycle management, and infrastructure-as-code deployment on AWS — are used at scale by production banking systems at institutions such as Razorpay, Paytm, and HDFC Bank's digital division.</p>
+
+  <div class="pgnum">1</div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗
+     ║  PAGE 9  –  PROJECT DESCRIPTION     ║
+     ╚══════════════════════════════════════╝ -->
+<div class="page">
+  <h1 class="ch">Chapter 2 &nbsp;–&nbsp; Project Description</h1>
+
+  <h2 class="sec">2.1 Project Overview and Motivation</h2>
+
+  <p>The DigitalBanking project is a <em>modular monolith</em> REST API backend for a digital banking platform. It was conceived and built to demonstrate how the theoretical concepts taught in the Scaler Neovarsity Master's program — system design, database modeling, concurrent programming, security engineering, and cloud deployment — translate into a single, coherent, production-quality software product.</p>
+
+  <p>Banking backends occupy a uniquely demanding position in software engineering. Unlike a typical e-commerce or social media API, a banking system cannot tolerate approximate arithmetic (floating-point money), optimistic assumptions about concurrent access, stateless balance derivation from transaction history, or a missing idempotency layer. A ₹10,000 debit that is processed twice due to a network retry is not a UX problem; it is a regulatory liability. The motivation for this project was to build a system where these failure modes are structurally impossible, not merely "unlikely."</p>
+
+  <p>The project was designed as a <strong>GitHub-hosted, interview-grade Spring Boot application</strong> — a codebase that demonstrates mastery of the backend specialization curriculum: Spring Boot, JPA/Hibernate, Spring Security, REST API design, database engineering, observability, and testing. It is intended to serve as both a learning artefact and a portfolio piece that communicates a coherent backend engineering story.</p>
+
+  <h2 class="sec">2.2 Project Objectives</h2>
+  <p>The following objectives guided every architectural and implementation decision made in this project:</p>
+
+  <ul>
+    <li><strong>Financial Correctness:</strong> Eliminate all floating-point arithmetic from monetary calculations. Use <code>BigDecimal</code> with <code>DECIMAL(19,4)</code> column precision universally. The balance of a bank account must always be a first-class, database-level state — never derived from summing transaction history at query time.</li>
+    <li><strong>Concurrency Safety:</strong> Design every balance-modifying operation to be safe under concurrent HTTP requests. A debit of ₹8,000 and a simultaneous debit of ₹7,000 from a ₹10,000 account must never both succeed. This requires database-level locking, not just application-level checks.</li>
+    <li><strong>Idempotent Payment API:</strong> Any payment or transfer endpoint must be safe to retry without risk of double-processing. A client that retries a payment after a network timeout must receive the same response as the original request, not a duplicate charge.</li>
+    <li><strong>Secure Authentication Lifecycle:</strong> Implement JWT access tokens (1-hour expiry) with refresh token rotation (7-day expiry), account lockout after 5 consecutive failed login attempts, and per-IP rate limiting to protect authentication endpoints from brute-force attacks.</li>
+    <li><strong>Production-Grade Database Design:</strong> Replace Hibernate <code>ddl-auto=update</code> with Flyway version-controlled migrations. Enforce foreign key constraints, unique constraints, and composite indexes where required by query patterns.</li>
+    <li><strong>Comprehensive Observability:</strong> All requests must carry a correlation ID traceable through logs. Micrometer counters and timers must expose transaction success/failure metrics to Prometheus for visualization in Grafana.</li>
+    <li><strong>Serious Test Coverage:</strong> Unit tests for all service logic, repository slice tests against H2, and full-stack integration tests against a real MySQL container using Testcontainers.</li>
+  </ul>
+
+  <div class="pgnum">2</div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════════╗
+     ║  PAGE 10  –  ARCHITECTURE / TECH STACK  ║
+     ╚══════════════════════════════════════════╝ -->
+<div class="page">
+
+  <h2 class="sec">2.3 High-Level System Architecture</h2>
+
+  <p>The DigitalBanking application follows a classical layered architecture within a single deployable Spring Boot JAR. The diagram below illustrates the major components and their interactions.</p>
+
+  <div class="fig-wrap" style="text-align:left;">
+    <div class="diag">
+┌─────────────────────────────────────────────────────────────────┐
+│                      HTTP CLIENT / POSTMAN                       │
+│                  (Mobile App / Web Frontend)                     │
+└─────────────────────────┬───────────────────────────────────────┘
+                           │  HTTPS Requests
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  SPRING BOOT APPLICATION                         │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  FILTER CHAIN                                            │   │
+│  │  CorrelationIdFilter → RateLimitingFilter(Bucket4j)      │   │
+│  │  → JwtAuthenticationFilter → SecurityFilterChain        │   │
+│  └──────────────────────┬───────────────────────────────────┘   │
+│                          │                                       │
+│  ┌──────────────────────▼───────────────────────────────────┐   │
+│  │  REST CONTROLLERS  (Spring MVC)                          │   │
+│  │  AuthController │ CustomerController │ TransactionCtrl   │   │
+│  │  TransferController                                      │   │
+│  └──────────────────────┬───────────────────────────────────┘   │
+│                          │  @Valid  +  Domain Exceptions         │
+│  ┌──────────────────────▼───────────────────────────────────┐   │
+│  │  SERVICE LAYER                                           │   │
+│  │  CustomerService │ TransactionService │ TransferService  │   │
+│  │  RefreshTokenService │ MyUserDetailsService              │   │
+│  └──────────────────────┬───────────────────────────────────┘   │
+│                          │  Spring Data JPA                      │
+│  ┌──────────────────────▼───────────────────────────────────┐   │
+│  │  REPOSITORY LAYER                                        │   │
+│  │  BankAccountRepository  │  TransactionsRepository        │   │
+│  │  CustomerRepository  │  UserRepository                   │   │
+│  │  IdempotencyKeyRepository  │  RefreshTokenRepository     │   │
+│  └──────────────────────┬───────────────────────────────────┘   │
+│                          │  HikariCP  (max 20 connections)       │
+└─────────────────────────┼───────────────────────────────────────┘
+                           │
+              ┌────────────▼────────────┐
+              │   MySQL 8 Database      │
+              │  (Flyway-managed schema)│
+              └─────────────────────────┘
+    </div>
+    <p class="fcap">Figure 2.1: High-Level System Architecture Diagram</p>
+  </div>
+
+  <h2 class="sec">2.4 MVC Request-Response Flow</h2>
+
+  <p>Every incoming HTTP request traverses the following pipeline before a response is returned:</p>
+
+  <div class="fig-wrap" style="text-align:left;">
+    <div class="diag">
+HTTP Request
+    │
+    ▼
+[1] CorrelationIdFilter
+    └─ Reads / generates X-Correlation-Id header
+    └─ Stores in MDC for log correlation
+    │
+    ▼
+[2] RateLimitingFilter  (Bucket4j — 100 req/min per IP)
+    └─ Returns HTTP 429 if limit exceeded
+    │
+    ▼
+[3] JwtAuthenticationFilter
+    └─ Extracts Bearer token from Authorization header
+    └─ Validates JWT signature, expiry, issuer, audience
+    └─ Populates SecurityContext with UserDetails + roles
+    │
+    ▼
+[4] Spring Security Authorization
+    └─ Checks role against URL pattern rules
+    └─ Returns HTTP 403 if unauthorized
+    │
+    ▼
+[5] Controller  (e.g., CustomerController)
+    └─ @Valid bean validation on @RequestBody
+    └─ Returns HTTP 400 with field errors on validation failure
+    │
+    ▼
+[6] Service  (e.g., TransactionServiceImpl)
+    └─ Business logic, locking, idempotency check
+    └─ Throws domain exceptions (InsufficientBalanceException, etc.)
+    │
+    ▼
+[7] Repository  (Spring Data JPA + Hibernate)
+    └─ Translates to SQL via JPQL
+    └─ HikariCP connection pool
+    │
+    ▼
+[8] MySQL  (transactional, ACID)
+    │
+    ▼
+Response → GlobalExceptionHandler (if exception thrown)
+    └─ Maps domain exceptions to standard ErrorResponse JSON
+    └─ Includes correlationId (traceId) from MDC
+    </div>
+    <p class="fcap">Figure 2.2: Spring MVC Request-Response Flow</p>
+  </div>
+
+  <h2 class="sec">2.5 Technology Stack Overview</h2>
+  <p>The table below provides a complete summary of the technologies, frameworks, and libraries chosen for this project along with their versions and roles.</p>
+
+  <p class="tcap">Table 2.01: Technology Stack — Components and Versions</p>
+  <table class="rep">
+    <tr>
+      <th style="width:170pt;">Technology</th>
+      <th style="width:80pt;">Version</th>
+      <th>Role in the Project</th>
+    </tr>
+    <tr><td>Java</td><td>17 (Temurin LTS)</td><td>Primary programming language. Java 17 LTS provides sealed classes, records, text blocks, and pattern matching.</td></tr>
+    <tr><td>Spring Boot</td><td>3.4.4</td><td>Application framework. Auto-configures web server (Tomcat), JPA, Security, Actuator, and validation.</td></tr>
+    <tr><td>Spring Data JPA</td><td>(Boot BOM)</td><td>ORM abstraction over Hibernate. Provides repository pattern, JPQL queries, and locking annotations.</td></tr>
+    <tr><td>Hibernate ORM</td><td>6.x (via Boot)</td><td>JPA implementation. Handles entity lifecycle, schema validation, and HQL/JPQL query translation.</td></tr>
+    <tr><td>Spring Security</td><td>(Boot BOM)</td><td>Security framework. Provides filter chain, role-based access control, and BCrypt password encoding.</td></tr>
+    <tr><td>JJWT (Java JWT)</td><td>0.12.3</td><td>JWT token creation, signing (HMAC-SHA256), parsing, and validation.</td></tr>
+    <tr><td>MySQL</td><td>8.0</td><td>Relational database. Stores all persistent application state.</td></tr>
+    <tr><td>Flyway</td><td>(Boot BOM)</td><td>Database migration framework. Manages version-controlled DDL scripts (V1, V2).</td></tr>
+    <tr><td>HikariCP</td><td>(Boot BOM)</td><td>High-performance JDBC connection pool. Configured with max 20 connections.</td></tr>
+    <tr><td>Bucket4j</td><td>8.10.1</td><td>Token-bucket rate limiting. Enforces 100 requests per minute per IP address.</td></tr>
+    <tr><td>Micrometer</td><td>(Boot BOM)</td><td>Application metrics facade. Exposes counters and timers to Prometheus.</td></tr>
+    <tr><td>Spring Actuator</td><td>(Boot BOM)</td><td>Production-ready management endpoints (health, info, metrics, prometheus).</td></tr>
+    <tr><td>JUnit 5</td><td>(Boot BOM)</td><td>Unit and integration testing framework.</td></tr>
+    <tr><td>Mockito</td><td>(Boot BOM)</td><td>Mock object creation for service-layer unit tests.</td></tr>
+    <tr><td>Testcontainers</td><td>(Boot BOM)</td><td>Spins up real MySQL Docker container for integration tests.</td></tr>
+    <tr><td>H2 Database</td><td>(Boot BOM)</td><td>In-memory database for @DataJpaTest repository slice tests.</td></tr>
+    <tr><td>Spring Validation</td><td>(Boot BOM)</td><td>Jakarta Validation + Hibernate Validator for request DTO validation.</td></tr>
+    <tr><td>Spring AOP</td><td>(Boot BOM)</td><td>Aspect-Oriented Programming for centralized logging aspect (LoggingAspect).</td></tr>
+    <tr><td>Logback</td><td>(Boot BOM)</td><td>SLF4J logging backend. Configured with %X{correlationId} MDC pattern.</td></tr>
+  </table>
+
+  <div class="pgnum">3 – 10</div>
+</div>
+
+</body>
+</html>
