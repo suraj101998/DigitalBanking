@@ -1,7 +1,0 @@
-/Users/surajchakraborty/git/DigitalBanking-release-java/src/test/java/com/example/pi/PiApplicationTests.java
-/Users/surajchakraborty/git/DigitalBanking-release-java/src/test/java/com/example/pi/integration/DigitalBankingIntegrationTest.java
-/Users/surajchakraborty/git/DigitalBanking-release-java/src/test/java/com/example/pi/repository/BankAccountRepositoryTest.java
-/Users/surajchakraborty/git/DigitalBanking-release-java/src/test/java/com/example/pi/repository/TransactionsRepositoryTest.java
-/Users/surajchakraborty/git/DigitalBanking-release-java/src/test/java/com/example/pi/security/JwtUtilsTest.java
-/Users/surajchakraborty/git/DigitalBanking-release-java/src/test/java/com/example/pi/service/impl/TransactionServiceImplTest.java
-/Users/surajchakraborty/git/DigitalBanking-release-java/src/test/java/com/example/pi/service/impl/TransferServiceImplTest.java
